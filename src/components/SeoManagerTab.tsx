@@ -22,29 +22,65 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
     );
   };
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // Auto-Generate SEO preset for selected platform
-  const handleAutoGenerateSeo = () => {
+  const handleAutoGenerateSeo = async () => {
     if (!selectedPlatform) return;
+    setIsGenerating(true);
 
-    const brandName = selectedPlatform.name;
-    const code = selectedPlatform.promoCode || 'MAXBOOST500';
+    try {
+      const response = await fetch('/api/generate-seo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('affiliate_admin_token')}`
+        },
+        body: JSON.stringify({ 
+          platformName: selectedPlatform.name,
+          existingDescription: selectedPlatform.metaDescription 
+        })
+      });
 
-    const generatedTitle = `${brandName} Promo Code ${code} | 500% Deposit Bonus 2026`;
-    const generatedDesc = `Official verified promo code for ${brandName}. Use code ${code} during registration to unlock 500% welcome bonus up to $1,000 + 200 free spins. Instant UPI & Crypto payouts.`;
-    const generatedKeywords = `${brandName.toLowerCase()} promo code, ${brandName.toLowerCase()} bonus code, ${brandName.toLowerCase()} welcome bonus 500%, ${brandName.toLowerCase()} free spins 2026, ${code}`;
+      if (!response.ok) {
+        throw new Error('Failed to generate SEO content');
+      }
 
-    setLocalPlatforms(prev =>
-      prev.map(p =>
-        p.id === selectedPlatformId
-          ? {
-              ...p,
-              metaTitle: generatedTitle,
-              metaDescription: generatedDesc,
-              metaKeywords: generatedKeywords
-            }
-          : p
-      )
-    );
+      const { data } = await response.json();
+      
+      const brandName = selectedPlatform.name;
+      const code = selectedPlatform.promoCode || 'MAXBOOST500';
+
+      const generatedTitle = `${brandName} Promo Code ${code} | 500% Deposit Bonus 2026`;
+      const generatedKeywords = `${brandName.toLowerCase()} promo code, ${brandName.toLowerCase()} bonus code, ${brandName.toLowerCase()} welcome bonus 500%, ${brandName.toLowerCase()} free spins 2026, ${code}`;
+      
+      let newReviewContent = selectedPlatform.reviewContent || `# ${brandName} Review\n\n`;
+      newReviewContent += `\n\n## Platform Overview\n${data.description}\n\n## Frequently Asked Questions\n\n`;
+      if (data.faqs && Array.isArray(data.faqs)) {
+        data.faqs.forEach((faq: {question: string, answer: string}) => {
+          newReviewContent += `**Q: ${faq.question}**\nA: ${faq.answer}\n\n`;
+        });
+      }
+
+      setLocalPlatforms(prev =>
+        prev.map(p =>
+          p.id === selectedPlatformId
+            ? {
+                ...p,
+                metaTitle: generatedTitle,
+                metaDescription: data.description,
+                metaKeywords: generatedKeywords,
+                reviewContent: newReviewContent.trim()
+              }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error('Error generating AI SEO:', error);
+      alert('Failed to generate SEO with AI. Ensure GEMINI_API_KEY is configured in backend.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // Save changes
@@ -124,11 +160,16 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
 
               <button
                 onClick={handleAutoGenerateSeo}
-                className="px-3 py-1.5 rounded-lg bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-300 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-                title="Generate high-converting SEO meta tags automatically"
+                disabled={isGenerating}
+                className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors ${
+                  isGenerating 
+                    ? 'bg-purple-900/50 border-purple-500/20 text-purple-400 cursor-not-allowed opacity-75' 
+                    : 'bg-purple-950/80 hover:bg-purple-900 border-purple-500/40 text-purple-300 cursor-pointer'
+                }`}
+                title="Generate high-converting SEO meta tags automatically using AI"
               >
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                <span>Auto-Generate Tags</span>
+                <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-pulse text-purple-500' : 'text-purple-400'}`} />
+                <span>{isGenerating ? 'Generating AI...' : 'Auto-Generate Tags'}</span>
               </button>
             </div>
 

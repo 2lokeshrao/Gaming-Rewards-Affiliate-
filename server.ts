@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import jwt from 'jsonwebtoken';
+import { GoogleGenAI, Type } from '@google/genai';
 import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
 
@@ -675,6 +676,69 @@ app.get('/sitemap.xml', (req, res) => {
 
   res.header('Content-Type', 'application/xml');
   res.send(xml);
+});
+
+// Gemini SEO Generation API
+app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
+  try {
+    const { platformName, existingDescription } = req.body;
+    
+    if (!platformName) {
+      return res.status(400).json({ error: 'platformName is required' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' });
+    }
+
+    const ai = new GoogleGenAI({ 
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+
+    const prompt = `You are an expert iGaming SEO copywriter. Generate an SEO-optimized description and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Do NOT use markdown formatting outside of the JSON structure. Focus on bonuses, withdrawals, and reliability.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            description: {
+              type: Type.STRING,
+              description: 'A 2-3 sentence highly SEO-optimized description of the platform.',
+            },
+            faqs: {
+              type: Type.ARRAY,
+              description: 'Exactly 2 FAQ items about the platform.',
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  question: { type: Type.STRING },
+                  answer: { type: Type.STRING },
+                },
+                required: ['question', 'answer']
+              }
+            }
+          },
+          required: ['description', 'faqs']
+        }
+      }
+    });
+
+    const output = JSON.parse(response.text || '{}');
+    res.json({ success: true, data: output });
+  } catch (error: any) {
+    console.error('Error generating SEO content with Gemini:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate SEO content' });
+  }
 });
 
 // Vite / Static Files Setup

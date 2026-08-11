@@ -19,7 +19,7 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
   - **NEW:** SEO Health Limits Tab to monitor and bulk fix meta tags exceeding recommended character limits (60 for titles, 160 for descriptions).
 
 - **Admin Control Center**:
-  - Protected by a dedicated passcode dialog (Default: `admin123`).
+  - Protected by a dedicated passcode dialog .
   - Full CRUD operations for Gaming Platforms (add, edit, toggle active status, adjust min deposit, promo codes, and affiliate URLs).
   - Sub-partner application review system (approve/reject sub-affiliates).
   - Custom coupon manager, global site announcement controls, and live analytics dashboard.
@@ -46,16 +46,16 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
 
 ### How to Access the Admin Center
 1. Click the lock icon in the header or footer of the application.
-2. Enter the passcode in the prompt (Default passcode: `admin123`).
+2. Enter the passcode in the prompt .
 
 ### How to Change the Admin Password
 To update the admin password:
 1. Open file `src/components/AdminLoginModal.tsx`.
 2. Locate line 22:
    ```typescript
-   if (passcode === 'admin123') {
+   if (passcode === '@dmin123') {
    ```
-3. Replace `'admin123'` with your desired new password.
+3. Replace `'@dmin123'` with your desired new password.
 4. Save the file. The new passcode will take effect immediately.
 
 ---

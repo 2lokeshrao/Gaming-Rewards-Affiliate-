@@ -174,7 +174,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
           <div>
             <h1 className="font-extrabold text-sm sm:text-lg leading-tight text-white">Affiliate Admin Control Center</h1>
-            <span className="text-[10px] sm:text-xs text-emerald-400 font-mono">Status: Authenticated (Passcode: admin123)</span>
+            <span className="text-[10px] sm:text-xs text-emerald-400 font-mono">Status: Authenticated</span>
           </div>
         </div>
 

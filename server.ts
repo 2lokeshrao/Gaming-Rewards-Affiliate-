@@ -8,7 +8,7 @@ import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerAppli
 const app = express();
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-affiliate-key-2026';
-const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || 'admin123';
+const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || '@dmin123';
 
 app.use(express.json());
 

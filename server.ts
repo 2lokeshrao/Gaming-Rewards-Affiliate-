@@ -50,7 +50,16 @@ let stateStats: AnalyticsStats = {
   totalPromoCopies: 490,
   totalWheelSpins: 310,
   totalSubPartnerApps: 2,
-  platformStats: {}
+  platformStats: {},
+  dailyTrends: [
+    { date: 'Aug 04', clicks: 120, conversions: 40 },
+    { date: 'Aug 05', clicks: 150, conversions: 55 },
+    { date: 'Aug 06', clicks: 180, conversions: 60 },
+    { date: 'Aug 07', clicks: 140, conversions: 45 },
+    { date: 'Aug 08', clicks: 200, conversions: 80 },
+    { date: 'Aug 09', clicks: 250, conversions: 95 },
+    { date: 'Aug 10', clicks: 310, conversions: 120 }
+  ]
 };
 
 let stateTrackLogs: TrackLog[] = [

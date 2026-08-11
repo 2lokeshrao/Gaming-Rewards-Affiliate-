@@ -174,6 +174,7 @@ export interface AnalyticsStats {
   totalWheelSpins: number;
   totalSubPartnerApps: number;
   platformStats: Record<string, { clicks: number; copies: number }>;
+  dailyTrends?: { date: string; clicks: number; conversions: number }[];
 }
 
 export interface TrackLog {

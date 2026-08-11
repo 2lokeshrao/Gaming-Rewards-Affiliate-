@@ -91,6 +91,7 @@ export const TopBanner: React.FC<TopBannerProps> = ({ geo, bannerTemplate, activ
                 onClick={() => {
                   navigator.clipboard.writeText(activeUrgencyTimer.promoCode);
                   setCopiedCode(true);
+                  window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Banner code copied!' }));
                   setTimeout(() => setCopiedCode(false), 2000);
                 }}
                 className="ml-1 text-[10px] bg-amber-500/30 text-amber-300 hover:bg-amber-500/50 px-1.5 py-0.5 rounded cursor-pointer"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GlobalConfig, GamingPlatform, PartnerPanelConfig, AnalyticsStats } from '../types';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
   DollarSign,
   Users,
@@ -317,6 +318,31 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Traffic Overview Chart */}
+      <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+        <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-amber-400" />
+          7-Day Traffic & Conversion Overview
+        </h3>
+        <div className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={stats?.dailyTrends || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
+              <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
+              <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" fontSize={12} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px' }}
+                itemStyle={{ color: '#f8fafc' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              <Line yAxisId="left" type="monotone" dataKey="clicks" name="Total Clicks" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, fill: '#0ea5e9' }} activeDot={{ r: 6 }} />
+              <Line yAxisId="right" type="monotone" dataKey="conversions" name="Conversions (FTDs)" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

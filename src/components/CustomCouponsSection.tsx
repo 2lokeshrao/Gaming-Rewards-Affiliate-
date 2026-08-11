@@ -18,6 +18,7 @@ export const CustomCouponsSection: React.FC<CustomCouponsSectionProps> = ({ coup
     e.stopPropagation();
     navigator.clipboard.writeText(coupon.code);
     setCopiedId(coupon.id);
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Coupon copied!' }));
     setTimeout(() => setCopiedId(null), 2000);
   };
 

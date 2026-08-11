@@ -10,6 +10,12 @@ import { LiveWinnersTicker } from './components/LiveWinnersTicker';
 import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw } from 'lucide-react';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsConditions } from './components/TermsConditions';
+import { TopLoadingBar } from './components/TopLoadingBar';
+import { AdContainer } from './components/AdContainer';
+import { AppSkeleton } from './components/Skeletons';
+import { ToastNotification } from './components/ToastNotification';
+import { PwaInstallModal } from './components/PwaInstallModal';
+import { ReferFriendModal } from './components/ReferFriendModal';
 
 // Code-Splitting with React.lazy for heavy components & modals
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
@@ -29,7 +35,11 @@ export default function App() {
   
   useEffect(() => {
     const handleLocationChange = () => {
-      setCurrentPath(window.location.pathname);
+      setIsNavigating(true);
+      setTimeout(() => {
+        setCurrentPath(window.location.pathname);
+        setIsNavigating(false);
+      }, 300); // 300ms fake delay for navigation feedback
     };
 
     window.addEventListener('popstate', handleLocationChange);
@@ -52,6 +62,7 @@ export default function App() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Modals
   const [showWheelModal, setShowWheelModal] = useState(false);
@@ -60,6 +71,8 @@ export default function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [selectedQrPlatform, setSelectedQrPlatform] = useState<GamingPlatform | null>(null);
   const [selectedFeedbackPlatform, setSelectedFeedbackPlatform] = useState<GamingPlatform | null>(null);
+  const [showPwaModal, setShowPwaModal] = useState(false);
+  const [showReferModal, setShowReferModal] = useState(false);
 
   // Admin Auth State
   const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem('affiliate_admin_token'));
@@ -273,6 +286,7 @@ export default function App() {
   // Copy code handler
   const handleCopyCode = (p: GamingPlatform) => {
     trackEvent('copy', p.id);
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Promo code copied!' }));
   };
 
   // Wheel prize redirect
@@ -369,12 +383,7 @@ export default function App() {
   };
 
   if (loading || !config) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-400 font-bold text-sm tracking-wider">LOADING VERIFIED GAMING REWARDS...</p>
-      </div>
-    );
+    return <AppSkeleton />;
   }
 
   // If currently viewing full admin panel
@@ -397,15 +406,26 @@ export default function App() {
 
   // Basic Client-Side Routing for static pages
   if (currentPath === '/privacy-policy') {
-    return <PrivacyPolicy />;
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <PrivacyPolicy />
+      </>
+    );
   }
 
   if (currentPath === '/terms') {
-    return <TermsConditions />;
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <TermsConditions />
+      </>
+    );
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans antialiased selection:bg-amber-400 selection:text-slate-950">
+      <TopLoadingBar isLoading={isNavigating} />
       {/* 1. Geo Top Banner */}
       <TopBanner geo={geo} bannerTemplate={config.topBannerTemplate} activeUrgencyTimer={activeUrgencyTimer} />
 
@@ -422,6 +442,8 @@ export default function App() {
           onOpenEmailChecker={() => setShowEmailCheckerModal(true)}
           abTestConfig={config.abTestConfig}
         />
+
+        <AdContainer slotId="hero_banner" />
 
         {/* 3. Top 3 Featured Carousel / Cards */}
         <TopThreeCarousel
@@ -519,6 +541,13 @@ export default function App() {
               className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer bg-slate-800/80 px-3 py-1 rounded-md border border-cyan-500/30"
             >
               <Users className="w-3 h-3" /> Become a Sub-Partner Agent
+            </button>
+
+            <button
+              onClick={() => setShowReferModal(true)}
+              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer bg-slate-800/80 px-3 py-1 rounded-md border border-emerald-500/30"
+            >
+              Refer a Friend
             </button>
 
             {/* Stealth Admin Access - If hideAdminLink is true, render a subtle lock icon button */}
@@ -621,13 +650,31 @@ export default function App() {
             onCopyCode={handleCopyCode}
           />
         )}
+
+        {showPwaModal && (
+          <PwaInstallModal onClose={() => setShowPwaModal(false)} />
+        )}
+
+        {showReferModal && (
+          <ReferFriendModal onClose={() => setShowReferModal(false)} />
+        )}
       </Suspense>
+
+      {/* Floating Action Button for PWA */}
+      <button 
+        onClick={() => setShowPwaModal(true)}
+        className="fixed bottom-24 right-4 z-[5000] bg-amber-400 text-slate-900 rounded-full px-4 py-2 font-black shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-transform flex items-center gap-2 border border-amber-300"
+      >
+        <span className="text-xs uppercase tracking-wider">Get Our App</span>
+      </button>
 
       {/* Live Winners Toast Ticker */}
       <LiveWinnersTicker
         initialWinners={fakeWinners}
         enabled={config.enableLiveWinnersTicker}
       />
+      
+      <ToastNotification />
     </div>
   );
 }

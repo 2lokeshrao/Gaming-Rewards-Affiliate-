@@ -421,7 +421,8 @@ export default function App() {
   // If currently viewing full admin panel
   if (viewingAdmin && adminToken && stats) {
     return (
-      <AdminPanel
+      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-4"><div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full"></div><p className="text-purple-400 font-bold animate-pulse">Loading Admin Control Center...</p></div>}>
+        <AdminPanel
         token={adminToken}
         onLogout={handleAdminLogout}
         platforms={platforms}
@@ -433,6 +434,7 @@ export default function App() {
         onSaveConfig={handleSaveConfigFromAdmin}
         onUpdateSubPartnerStatus={handleUpdateSubPartnerStatus}
       />
+      </Suspense>
     );
   }
 

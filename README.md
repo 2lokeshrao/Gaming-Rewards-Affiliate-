@@ -13,9 +13,10 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
   - Copy-to-clipboard promo codes with instant feedback toast notifications.
   - Interactive **Lucky Wheel Spin Modal** and **Email Verification Offer Checker**.
 
-- **Dynamic SEO Engine**:
-  - Automatically generates and injects dynamic `FAQPage` JSON-LD schema into the document `<head>` (`src/utils/seo.ts`).
+- **Dynamic SEO Engine & Health Manager**:
+  - Automatically generates and injects dynamic `FAQPage` JSON-LD schema into the document `<head>`.
   - Search engine crawler friendly with platform-specific promo code and payout speed metadata.
+  - **NEW:** SEO Health Limits Tab to monitor and bulk fix meta tags exceeding recommended character limits (60 for titles, 160 for descriptions).
 
 - **Admin Control Center**:
   - Protected by a dedicated passcode dialog (Default: `admin123`).
@@ -29,7 +30,7 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
 
 - **Responsive Mobile First Design**:
   - Mobile drawer navigation with hamburger toggle.
-  - Responsive single-row flex-wrap social media bar (`src/components/SocialMediaBar.tsx`).
+  - Responsive single-row flex-wrap social media bar.
 
 ---
 
@@ -37,7 +38,7 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Lucide React Icons, Motion animations.
 - **Backend**: Express.js server (`server.ts`) with Vite dev middleware and bundled CommonJS (`dist/server.cjs`) via `esbuild`.
-- **Data Persistence**: Local JSON state persistence with API route endpoints (`/api/platforms`, `/api/config`, `/api/sub-partners`, `/api/track`).
+- **Data Persistence**: Local JSON state persistence with API route endpoints.
 
 ---
 
@@ -54,65 +55,23 @@ To update the admin password:
    ```typescript
    if (passcode === 'admin123') {
    ```
-3. Replace `'admin123'` with your desired new password (e.g., `'MySecurePass2026!'`).
+3. Replace `'admin123'` with your desired new password.
 4. Save the file. The new passcode will take effect immediately.
-
----
-
-## 🔐 Environment Variable Setup Instructions
-
-Create a `.env` file in the root directory or configure environment variables in your hosting provider's dashboard using `.env.example` as a template:
-
-```env
-# GEMINI_API_KEY: Required for AI-assisted promo text or content generation
-GEMINI_API_KEY="your_gemini_api_key_here"
-
-# APP_URL: Base URL of your deployed application (used for redirects and S2S postbacks)
-APP_URL="https://your-domain.com"
-
-# Optional: Supabase Database Integration Credentials (If using external Supabase DB)
-VITE_SUPABASE_URL="https://your-project.supabase.co"
-VITE_SUPABASE_ANON_KEY="your_supabase_anon_key_here"
-```
 
 ---
 
 ## 🛠️ Step-by-Step Deployment Guide
 
 ### Option 1: Vercel + Supabase Deployment
-
-#### 1. Database & Backend Setup (Supabase)
 If you wish to host your data on Supabase instead of local file persistence:
 1. Sign in to [Supabase](https://supabase.com) and create a new project.
 2. Copy your **Project URL** and **Anon Key** from `Settings -> API`.
 3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to your environment settings.
-
-#### 2. Deploying to Vercel
-1. Push your code to a GitHub repository.
-2. Log in to [Vercel](https://vercel.com) and click **Add New Project**.
-3. Select your GitHub repository.
-4. Configure the Build & Development Settings:
-   - **Framework Preset**: Vite / Other
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-   - **Install Command**: `npm install`
-5. Add your **Environment Variables** (`GEMINI_API_KEY`, `APP_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
-6. Click **Deploy**. Vercel will build and launch your application globally.
-
----
+4. Push your code to a GitHub repository and link it to Vercel.
 
 ### Option 2: Cloud Run / AI Studio Deployment (Default)
 1. Click **Deploy / Share** in the top menu bar.
 2. Select **Deploy to Cloud Run**.
-3. The platform automatically builds `npm run build` (`vite build && esbuild server.ts ...`) and deploys the container running on port 3000.
-
----
-
-### Option 3: Render / Railway / Heroku (Node.js Server)
-1. Set Environment: `NODE_ENV=production`.
-2. Build Command: `npm run build`
-3. Start Command: `npm start`
-4. The server binds to `0.0.0.0:3000` or the platform `PORT` automatically.
 
 ---
 
@@ -120,15 +79,9 @@ If you wish to host your data on Supabase instead of local file persistence:
 
 Before pushing or deploying:
 ```bash
-# 1. Run TypeScript check & linter
 npm run lint
-
-# 2. Test full production build
 npm run build
-
-# 3. Test production execution locally
 npm start
 ```
 
----
 *Built with Google AI Studio Build.*

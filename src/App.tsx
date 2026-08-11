@@ -8,6 +8,8 @@ import { OfferGrid } from './components/OfferGrid';
 import { SocialMediaBar } from './components/SocialMediaBar';
 import { LiveWinnersTicker } from './components/LiveWinnersTicker';
 import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw } from 'lucide-react';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsConditions } from './components/TermsConditions';
 
 // Code-Splitting with React.lazy for heavy components & modals
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
@@ -23,7 +25,19 @@ const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m
 const ExitIntentModal = lazy(() => import('./components/ExitIntentModal').then(m => ({ default: m.ExitIntentModal })));
 
 export default function App() {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
   const [platforms, setPlatforms] = useState<GamingPlatform[]>([]);
+
   const [config, setConfig] = useState<GlobalConfig | null>(null);
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [fakeWinners, setFakeWinners] = useState<WinnerTickerItem[]>([]);
@@ -381,6 +395,15 @@ export default function App() {
     );
   }
 
+  // Basic Client-Side Routing for static pages
+  if (currentPath === '/privacy-policy') {
+    return <PrivacyPolicy />;
+  }
+
+  if (currentPath === '/terms') {
+    return <TermsConditions />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans antialiased selection:bg-amber-400 selection:text-slate-950">
       {/* 1. Geo Top Banner */}
@@ -478,7 +501,7 @@ export default function App() {
         <div className="max-w-5xl mx-auto space-y-4">
           <div className="flex items-center justify-center gap-2 font-bold text-slate-200">
             <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>VIP Rewards Gaming Affiliate Portal &copy; 2026</span>
+            <span>BonusPromoCode.in Affiliate Portal &copy; {new Date().getFullYear()}</span>
           </div>
 
           {/* Social Media Footer Icons */}
@@ -487,7 +510,7 @@ export default function App() {
           </div>
 
           <p className="max-w-3xl mx-auto leading-relaxed text-slate-400 text-[11px]">
-            This site is an independent gaming review and affiliate portal. We provide promotional bonus codes and reviews for licensed online gaming and sports platforms. Please gamble responsibly. 18+ Only.
+            This site is an independent gaming review and affiliate portal. We provide promotional bonus codes and reviews for licensed online gaming and sports platforms. Please gamble responsibly. 18+ Only. <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/privacy-policy'); window.dispatchEvent(new PopStateEvent('popstate')); }} className="underline hover:text-amber-400 ml-2">Privacy Policy</a> | <a href="/terms" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/terms'); window.dispatchEvent(new PopStateEvent('popstate')); }} className="underline hover:text-amber-400 ml-2">Terms & Conditions</a>
           </p>
 
           <div className="flex items-center justify-center gap-4 text-[11px] pt-2">

@@ -84,11 +84,11 @@ export const initialGlobalConfig: GlobalConfig = {
     }
   ],
   // Social Media Channels
-  telegramUrl: "https://t.me/OfficialGamingPromos",
-  instagramUrl: "https://instagram.com/official_gaming_bonuses",
-  tiktokUrl: "https://tiktok.com/@gaming_promo_codes",
-  whatsappGroupUrl: "https://chat.whatsapp.com/VIPGamingClub2026",
-  youtubeUrl: "https://youtube.com/@GamingBonusOfficial",
+  telegramUrl: "https://t.me/BonusPromoCodeOfficial",
+  instagramUrl: "https://instagram.com/bonuspromocode",
+  tiktokUrl: "https://tiktok.com/@bonuspromocode",
+  whatsappGroupUrl: "https://chat.whatsapp.com/BonusPromoCodeClub",
+  youtubeUrl: "https://youtube.com/@BonusPromoCode",
   // FCM Push Notifications & A/B Testing Defaults
   pushNotifications: [
     {

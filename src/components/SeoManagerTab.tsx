@@ -100,6 +100,49 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
         </div>
       )}
 
+      {/* SEO Health Checklist Panel */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-800 mb-4">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <h3 className="text-lg font-black text-white">SEO Health Checklist</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(() => {
+            const missingTitles = localPlatforms.filter(p => !p.metaTitle);
+            const missingDescriptions = localPlatforms.filter(p => !p.metaDescription);
+            const missingImages = localPlatforms.filter(p => !p.icon || !p.bannerImage);
+            return (
+              <>
+                <div className={`p-4 rounded-xl border ${missingTitles.length > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                  <h4 className="font-bold text-slate-200 mb-2">Meta Titles</h4>
+                  <p className="text-sm text-slate-400">
+                    {missingTitles.length > 0 
+                      ? <span className="text-amber-400">{missingTitles.length} platforms missing custom titles</span>
+                      : <span className="text-emerald-400">All platforms have custom titles!</span>}
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${missingDescriptions.length > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                  <h4 className="font-bold text-slate-200 mb-2">Meta Descriptions</h4>
+                  <p className="text-sm text-slate-400">
+                    {missingDescriptions.length > 0 
+                      ? <span className="text-amber-400">{missingDescriptions.length} platforms missing descriptions</span>
+                      : <span className="text-emerald-400">All platforms have descriptions!</span>}
+                  </p>
+                </div>
+                <div className={`p-4 rounded-xl border ${missingImages.length > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+                  <h4 className="font-bold text-slate-200 mb-2">Platform Images</h4>
+                  <p className="text-sm text-slate-400">
+                    {missingImages.length > 0 
+                      ? <span className="text-red-400">{missingImages.length} platforms missing images</span>
+                      : <span className="text-emerald-400">All platforms have images!</span>}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+
       {/* Top Banner & Control Bar */}
       <div className="bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-950 border border-purple-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">

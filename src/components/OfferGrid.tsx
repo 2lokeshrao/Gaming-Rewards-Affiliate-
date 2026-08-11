@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { GamingPlatform } from '../types';
-import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare } from 'lucide-react';
+import { GamingPlatform, UserGeo } from '../types';
+import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import confetti from 'canvas-confetti';
 
 interface OfferGridProps {
   platforms: GamingPlatform[];
+  geo?: UserGeo;
   onClaimClick: (platform: GamingPlatform) => void;
   onCopyCode: (platform: GamingPlatform) => void;
   onSubPartnerClick?: (platform: GamingPlatform) => void;
@@ -15,6 +16,7 @@ interface OfferGridProps {
 
 export const OfferGrid: React.FC<OfferGridProps> = ({
   platforms,
+  geo,
   onClaimClick,
   onCopyCode,
   onSubPartnerClick,
@@ -22,6 +24,20 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
   onOpenFeedbackModal
 }) => {
   const activePlatforms = platforms.filter(p => p.isActive);
+  
+  // Localized redirect logic: Prioritize specific offers based on UserGeo (e.g., India)
+  const sortedPlatforms = [...activePlatforms].sort((a, b) => {
+    if (geo?.countryCode === 'IN') {
+      // Prioritize platforms that might support UPI (just as an example logic, we'll boost '1win' and 'parimatch')
+      const aIsLocal = a.name.toLowerCase().includes('1win') || a.name.toLowerCase().includes('parimatch') || a.name.toLowerCase().includes('melbet');
+      const bIsLocal = b.name.toLowerCase().includes('1win') || b.name.toLowerCase().includes('parimatch') || b.name.toLowerCase().includes('melbet');
+      
+      if (aIsLocal && !bIsLocal) return -1;
+      if (!aIsLocal && bIsLocal) return 1;
+    }
+    return 0; // fallback to original order
+  });
+
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (p: GamingPlatform, e: React.MouseEvent) => {
@@ -56,7 +72,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
       </div>
 
       <div className="space-y-4">
-        {activePlatforms.map((p, index) => (
+        {sortedPlatforms.map((p, index) => (
           <div
             key={p.id}
             className="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 transition-all duration-200 hover:shadow-xl hover:shadow-purple-900/10 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
@@ -76,12 +92,22 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-700 bg-slate-800 shrink-0"
               />
               <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-white leading-tight flex items-center gap-2">
+                <h3 className="font-extrabold text-base sm:text-lg text-white leading-tight flex items-center flex-wrap gap-2">
                   {p.name}
                   {p.isFeatured && (
                     <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                       <Flame className="w-3 h-3 text-amber-400 fill-amber-400" />
                       FEATURED
+                    </span>
+                  )}
+                  {/* Conditional HOT badge for high CTR / popular offers */}
+                  {(p.clicksCount > 500) && (
+                    <span className="relative flex items-center justify-center ml-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-md bg-red-500 opacity-40"></span>
+                      <span className="relative bg-gradient-to-r from-red-600 to-rose-600 border border-red-400 text-white text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1 shadow-[0_0_10px_rgba(225,29,72,0.5)]">
+                        <Flame className="w-3 h-3 text-white fill-white" />
+                        HOT
+                      </span>
                     </span>
                   )}
                 </h3>

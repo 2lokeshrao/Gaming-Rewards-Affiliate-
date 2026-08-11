@@ -137,7 +137,35 @@ export default function App() {
         setFakeWinners(data.fakeWinners);
         setLogs(data.logs);
         if (data.subPartners) setSubPartners(data.subPartners);
-        if (data.geo) setGeo(data.geo);
+        if (data.geo) {
+          setGeo(data.geo);
+          
+          // Auto-localization logic based on geo IP
+          const langMap: Record<string, string> = {
+            IN: 'hi', // Hindi
+            BR: 'pt', // Portuguese
+            BD: 'bn', // Bengali
+            RU: 'ru', // Russian
+            ID: 'id', // Indonesian
+            PK: 'ur', // Urdu
+            TR: 'tr', // Turkish
+            ES: 'es', // Spain
+            MX: 'es'  // Mexico
+          };
+          
+          const targetLang = langMap[data.geo.countryCode];
+          if (targetLang) {
+            const cookieVal = `/en/${targetLang}`;
+            // If the translation cookie isn't set, set it and let the script pick it up on reload or immediately
+            if (!document.cookie.includes(`googtrans=${cookieVal}`)) {
+              document.cookie = `googtrans=${cookieVal}; path=/`;
+              document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname}`;
+              setTimeout(() => {
+                window.location.reload();
+              }, 500); // Reload so google translate applies the targeted language
+            }
+          }
+        }
 
         // Record A/B test view impression
         if (data.config?.abTestConfig?.enabled && !sessionStorage.getItem('ab_view_recorded')) {
@@ -426,11 +454,30 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans antialiased selection:bg-amber-400 selection:text-slate-950">
       <TopLoadingBar isLoading={isNavigating} />
-      {/* 1. Geo Top Banner */}
-      <TopBanner geo={geo} bannerTemplate={config.topBannerTemplate} activeUrgencyTimer={activeUrgencyTimer} />
+      {/* Sticky Header Navigation */}
+      <header className="sticky top-0 z-[100] flex flex-col bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
+        {/* 1. Geo Top Banner */}
+        <TopBanner geo={geo} bannerTemplate={config.topBannerTemplate} activeUrgencyTimer={activeUrgencyTimer} />
 
-      {/* Social Media VIP Channels Banner */}
-      <SocialMediaBar config={config} variant="banner" />
+        {/* Social Media VIP Channels Banner */}
+        <SocialMediaBar config={config} variant="banner" />
+        
+        {/* Nav Bar */}
+        <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-amber-400" />
+            <span className="font-black tracking-tight text-white text-lg">BonusPromoCode</span>
+          </div>
+          <button 
+            onClick={() => setShowPwaModal(true)}
+            className="bg-amber-400 text-slate-900 px-4 py-1.5 text-sm font-black rounded-xl hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" /> 
+            <span className="hidden sm:inline">Get Our App</span>
+            <span className="sm:hidden">App</span>
+          </button>
+        </div>
+      </header>
 
       {/* Main Container */}
       <main className="pb-16">

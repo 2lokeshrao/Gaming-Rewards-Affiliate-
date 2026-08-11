@@ -634,58 +634,62 @@ app.get('/go/:slug', (req, res) => {
   `);
 });
 
-// Dynamic Sitemap.xml Generator Route
-app.get('/sitemap.xml', (req, res) => {
-  const host = `${req.protocol}://${req.get('host')}`;
-  const now = new Date().toISOString().split('T')[0];
+// SEO Helper function to dynamically inject sitemap.xml route
+function injectSitemapRoute(app: express.Application) {
+  app.get('/sitemap.xml', (req, res) => {
+    const host = `${req.protocol}://${req.get('host')}`;
+    const now = new Date().toISOString().split('T')[0];
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-  xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-  // Homepage
-  xml += `  <url>\n`;
-  xml += `    <loc>${host}/</loc>\n`;
-  xml += `    <lastmod>${now}</lastmod>\n`;
-  xml += `    <changefreq>daily</changefreq>\n`;
-  xml += `    <priority>1.0</priority>\n`;
-  xml += `  </url>\n`;
-
-  // Active Gaming Platforms
-  statePlatforms.filter(p => p.isActive).forEach(p => {
-    // Redirect Route
+    // Homepage
     xml += `  <url>\n`;
-    xml += `    <loc>${host}/go/${p.slug}</loc>\n`;
+    xml += `    <loc>${host}/</loc>\n`;
     xml += `    <lastmod>${now}</lastmod>\n`;
     xml += `    <changefreq>daily</changefreq>\n`;
-    xml += `    <priority>0.9</priority>\n`;
+    xml += `    <priority>1.0</priority>\n`;
     xml += `  </url>\n`;
 
-    // Review Route
-    xml += `  <url>\n`;
-    xml += `    <loc>${host}/review/${p.slug}</loc>\n`;
-    xml += `    <lastmod>${now}</lastmod>\n`;
-    xml += `    <changefreq>weekly</changefreq>\n`;
-    xml += `    <priority>0.8</priority>\n`;
-    xml += `  </url>\n`;
-  });
-
-  // Active Custom Standalone Coupons
-  if (stateConfig.customCoupons) {
-    stateConfig.customCoupons.filter(c => c.isActive).forEach(c => {
+    // Active Gaming Platforms
+    statePlatforms.filter(p => p.isActive).forEach(p => {
+      // Redirect Route
       xml += `  <url>\n`;
-      xml += `    <loc>${host}/coupon/${c.id}</loc>\n`;
+      xml += `    <loc>${host}/go/${p.slug}</loc>\n`;
       xml += `    <lastmod>${now}</lastmod>\n`;
       xml += `    <changefreq>daily</changefreq>\n`;
-      xml += `    <priority>0.85</priority>\n`;
+      xml += `    <priority>0.9</priority>\n`;
+      xml += `  </url>\n`;
+
+      // Review Route
+      xml += `  <url>\n`;
+      xml += `    <loc>${host}/review/${p.slug}</loc>\n`;
+      xml += `    <lastmod>${now}</lastmod>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
       xml += `  </url>\n`;
     });
-  }
 
-  xml += `</urlset>`;
+    // Active Custom Standalone Coupons
+    if (stateConfig.customCoupons) {
+      stateConfig.customCoupons.filter(c => c.isActive).forEach(c => {
+        xml += `  <url>\n`;
+        xml += `    <loc>${host}/coupon/${c.id}</loc>\n`;
+        xml += `    <lastmod>${now}</lastmod>\n`;
+        xml += `    <changefreq>daily</changefreq>\n`;
+        xml += `    <priority>0.85</priority>\n`;
+        xml += `  </url>\n`;
+      });
+    }
 
-  res.header('Content-Type', 'application/xml');
-  res.send(xml);
-});
+    xml += `</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  });
+}
+
+// Inject the sitemap route
+injectSitemapRoute(app);
 
 // Gemini SEO Generation API
 app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
@@ -710,7 +714,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
       }
     });
 
-    const prompt = `You are an expert iGaming SEO copywriter. Generate an SEO-optimized description and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Do NOT use markdown formatting outside of the JSON structure. Focus on bonuses, withdrawals, and reliability.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
+    const prompt = `You are an expert iGaming SEO copywriter. Generate SEO metadata (title, description, keywords) and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Focus on bonuses, withdrawals, and reliability. IMPORTANT: Keep the title strictly under 60 characters and the description strictly under 160 characters to comply with Google SEO guidelines.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
@@ -720,9 +724,17 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            title: {
+              type: Type.STRING,
+              description: 'SEO optimized title strictly under 60 characters.',
+            },
             description: {
               type: Type.STRING,
-              description: 'A 2-3 sentence highly SEO-optimized description of the platform.',
+              description: 'SEO optimized description strictly under 160 characters.',
+            },
+            keywords: {
+              type: Type.STRING,
+              description: 'Comma separated list of 4-6 target keywords.',
             },
             faqs: {
               type: Type.ARRAY,
@@ -737,7 +749,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
               }
             }
           },
-          required: ['description', 'faqs']
+          required: ['title', 'description', 'keywords', 'faqs']
         }
       }
     });

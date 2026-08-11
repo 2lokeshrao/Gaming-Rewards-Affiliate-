@@ -28,6 +28,7 @@ import {
   Ticket
 } from 'lucide-react';
 import { SeoManagerTab } from './SeoManagerTab';
+import { SeoHealthTab } from './SeoHealthTab';
 import { CustomCouponManagerTab } from './CustomCouponManagerTab';
 import { FeedbackApprovalTab } from './FeedbackApprovalTab';
 import { TrackingPixelManagerTab } from './TrackingPixelManagerTab';
@@ -294,6 +295,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <Search className="w-4 h-4 text-emerald-400" />
               <span>SEO Content Manager</span>
             </button>
+            <button
+              onClick={() => { setActiveTab('seo_health'); setIsMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer ${
+                activeTab === 'seo_health' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
+              }`}
+            >
+              <Activity className="w-4 h-4 text-blue-400" />
+              <span>SEO Health Limits</span>
+            </button>
+
           </div>
         )}
 
@@ -407,6 +418,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <Search className="w-5 h-5 text-emerald-400" />
             <span>SEO Content Manager</span>
           </button>
+          <button
+            onClick={() => setActiveTab('seo_health')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
+              activeTab === 'seo_health'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Activity className="w-5 h-5 text-blue-400" />
+            <span>SEO Health Limits</span>
+          </button>
+
 
           <button
             onClick={() => setActiveTab('feedback')}
@@ -859,10 +882,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           onClick={() => {
                             const name = editingPlatform.name || 'Gaming Platform';
                             const code = editingPlatform.promoCode || 'MAXBOOST500';
+                                                        const generatedTitle = truncateSeoText(`${name} Promo Code ${code} | 500% Deposit Bonus 2026`, 60);
+                            const generatedDesc = truncateSeoText(`Official verified promo code for ${name}. Use code ${code} during registration to claim 500% welcome bonus + 200 free spins instantly.`, 160);
                             setEditingPlatform({
                               ...editingPlatform,
-                              metaTitle: `${name} Promo Code ${code} | 500% Deposit Bonus 2026`,
-                              metaDescription: `Official verified promo code for ${name}. Use code ${code} during registration to claim 500% welcome bonus + 200 free spins instantly.`,
+                              metaTitle: generatedTitle,
+                              metaDescription: generatedDesc,
                               metaKeywords: `${name.toLowerCase()} promo code, ${name.toLowerCase()} bonus code, ${name.toLowerCase()} welcome bonus 500%, ${code}`
                             });
                           }}
@@ -1460,6 +1485,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           {/* TAB 5: SEO CONTENT MANAGER */}
           {activeTab === 'seo' && (
             <SeoManagerTab
+              platforms={platforms}
+              onSavePlatforms={onSavePlatforms}
+            />
+          )}
+
+          {activeTab === 'seo_health' && (
+            <SeoHealthTab
               platforms={platforms}
               onSavePlatforms={onSavePlatforms}
             />

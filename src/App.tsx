@@ -1,13 +1,13 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, WinnerTickerItem, UserGeo, SubPartnerApplication } from './types';
-import { injectFaqSchemaInHead } from './utils/seo';
+import { injectFaqSchemaInHead, injectGoogleSiteVerification } from './utils/seo';
 import { TopBanner } from './components/TopBanner';
 import { HeroSection } from './components/HeroSection';
 import { TopThreeCarousel } from './components/TopThreeCarousel';
 import { OfferGrid } from './components/OfferGrid';
 import { SocialMediaBar } from './components/SocialMediaBar';
 import { LiveWinnersTicker } from './components/LiveWinnersTicker';
-import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw, Globe } from 'lucide-react';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsConditions } from './components/TermsConditions';
 import { TopLoadingBar } from './components/TopLoadingBar';
@@ -184,6 +184,10 @@ export default function App() {
           setConfig(updatedConfig);
           handleSaveConfigFromAdmin(updatedConfig);
         }
+
+        // Inject Google Search Console Verification Meta Tag
+        injectGoogleSiteVerification("YOUR_GSC_VERIFICATION_CODE");
+        
       }
     } catch (err) {
       console.error('Failed to load initial affiliate data:', err);
@@ -468,14 +472,41 @@ export default function App() {
             <ShieldCheck className="w-6 h-6 text-amber-400" />
             <span className="font-black tracking-tight text-white text-lg">BonusPromoCode</span>
           </div>
-          <button 
-            onClick={() => setShowPwaModal(true)}
-            className="bg-amber-400 text-slate-900 px-4 py-1.5 text-sm font-black rounded-xl hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" /> 
-            <span className="hidden sm:inline">Get Our App</span>
-            <span className="sm:hidden">App</span>
-          </button>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative group flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+              <Globe className="w-4 h-4 text-slate-400 mr-1" />
+              <select 
+                className="bg-transparent text-xs text-slate-200 outline-none cursor-pointer appearance-none pr-4"
+                onChange={(e) => {
+                  const lang = e.target.value;
+                  const cookieVal = `/en/${lang}`;
+                  document.cookie = `googtrans=${cookieVal}; path=/`;
+                  document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname}`;
+                  window.location.reload();
+                }}
+                defaultValue={(() => {
+                  const match = typeof document !== 'undefined' ? document.cookie.match(/googtrans=\/en\/([a-z]{2})/) : null;
+                  return match ? match[1] : 'en';
+                })()}
+              >
+                <option value="en" className="bg-slate-900 text-slate-200">English (EN)</option>
+                <option value="hi" className="bg-slate-900 text-slate-200">Hindi (HI)</option>
+                <option value="pt" className="bg-slate-900 text-slate-200">Portuguese (PT)</option>
+                <option value="es" className="bg-slate-900 text-slate-200">Spanish (ES)</option>
+                <option value="ru" className="bg-slate-900 text-slate-200">Russian (RU)</option>
+                <option value="bn" className="bg-slate-900 text-slate-200">Bengali (BN)</option>
+              </select>
+            </div>
+            <button 
+              onClick={() => setShowPwaModal(true)}
+              className="bg-amber-400 text-slate-900 px-4 py-1.5 text-sm font-black rounded-xl hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" /> 
+              <span className="hidden sm:inline">Get Our App</span>
+              <span className="sm:hidden">App</span>
+            </button>
+          </div>
         </div>
       </header>
 

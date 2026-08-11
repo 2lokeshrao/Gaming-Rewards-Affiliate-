@@ -66,6 +66,19 @@ export function generateFaqSchema(
   return faqSchema;
 }
 
+export function injectGoogleSiteVerification(verificationCode: string) {
+  if (typeof document === 'undefined') return;
+  const metaId = 'google-site-verification-meta';
+  let metaTag = document.getElementById(metaId) as HTMLMetaElement | null;
+  if (!metaTag) {
+    metaTag = document.createElement('meta');
+    metaTag.id = metaId;
+    metaTag.name = 'google-site-verification';
+    document.head.appendChild(metaTag);
+  }
+  metaTag.content = verificationCode;
+}
+
 /**
  * Dynamically injects or updates the FAQPage JSON-LD script tag in document head
  */

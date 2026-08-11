@@ -35,6 +35,26 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
     }
   ])).flat();
 
+
+  const breadcrumbSchemaData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://bonuspromocode.in/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Promo Codes 2026",
+        "item": "https://bonuspromocode.in/#seo-content-section"
+      }
+    ]
+  };
+
   const faqSchemaData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -52,12 +72,35 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
   };
 
   return (
-    <section className="py-12 px-4 max-w-7xl mx-auto border-t border-slate-800/80">
+    <section id="seo-content-section" className="py-12 px-4 max-w-7xl mx-auto border-t border-slate-800/80 scroll-mt-24">
       {/* Inject Dynamic Schema.org JSON-LD FAQ Markup for Google Rich Snippets */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchemaData) }}
       />
+
+
+      {/* Table of Contents */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-10 shadow-lg">
+        <h3 className="text-lg font-black text-white flex items-center gap-2 mb-4">
+          <Search className="w-5 h-5 text-amber-400" />
+          <span>Table of Contents</span>
+        </h3>
+        <nav className="flex flex-col gap-2 text-sm font-medium">
+          <a href="#seo-compare-table" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            2026 Gaming & Custom Coupon Search Index
+          </a>
+          <a href="#seo-article-blocks" className="text-purple-400 hover:text-purple-300 hover:underline transition-colors flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+            Trust & Legitimacy Guide
+          </a>
+          <a href="#seo-tag-cloud" className="text-emerald-400 hover:text-emerald-300 hover:underline transition-colors flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Popular Search Tags
+          </a>
+        </nav>
+      </div>
 
       {/* SEO Title & Description */}
       <div className="text-center mb-10">
@@ -74,7 +117,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
       </div>
 
       {/* Structured SEO Keyword Comparison Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl mb-10">
+      <div id="seo-compare-table" className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl mb-10 scroll-mt-24">
         <div className="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
             <Flame className="w-5 h-5 text-amber-400 animate-pulse" />
@@ -181,7 +224,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
       </div>
 
       {/* Rich Article Blocks for SEO indexing */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-300 text-xs sm:text-sm leading-relaxed">
+      <div id="seo-article-blocks" className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-300 text-xs sm:text-sm leading-relaxed scroll-mt-24">
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 space-y-2">
           <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm mb-1">
             <Award className="w-4 h-4" />
@@ -214,7 +257,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
       </div>
 
       {/* SEO Tag Cloud for Search Crawlers */}
-      <div className="mt-8 pt-6 border-t border-slate-800/60 flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-400">
+      <div id="seo-tag-cloud" className="mt-8 pt-6 border-t border-slate-800/60 flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-400 scroll-mt-24">
         <span className="font-extrabold text-slate-300 uppercase mr-1">Popular Search Tags:</span>
         {[
           "is 1win legit",

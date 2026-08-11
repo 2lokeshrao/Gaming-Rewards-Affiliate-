@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GamingPlatform, UserGeo } from '../types';
 import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
+import { AdContainer } from './AdContainer';
 import confetti from 'canvas-confetti';
 
 interface OfferGridProps {
@@ -73,10 +74,10 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
 
       <div className="space-y-4">
         {sortedPlatforms.map((p, index) => (
-          <div
-            key={p.id}
-            className="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 transition-all duration-200 hover:shadow-xl hover:shadow-purple-900/10 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
-          >
+          <React.Fragment key={p.id}>
+            <div
+              className="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 transition-all duration-200 hover:shadow-xl hover:shadow-purple-900/10 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+            >
             {/* Brand Logo & Name */}
             <div className="flex items-center gap-4 lg:w-1/4">
               <span className="font-extrabold text-slate-500 text-sm w-5 text-center shrink-0">
@@ -209,6 +210,13 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
               )}
             </div>
           </div>
+          {/* Smart ad-insertion: after every 4th game item */}
+          {(index + 1) % 4 === 0 && index !== sortedPlatforms.length - 1 && (
+            <div className="py-2">
+              <AdContainer slotId={`offer_grid_inline_${index}`} />
+            </div>
+          )}
+          </React.Fragment>
         ))}
       </div>
     </section>

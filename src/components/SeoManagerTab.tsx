@@ -25,6 +25,15 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Auto-Generate SEO preset for selected platform
+
+  // Helper to truncate text
+  const truncateSeoText = (text: string | undefined, max: number) => {
+    if (!text) return '';
+    if (text.length <= max) return text;
+    const truncated = text.substring(0, max - 3).trim();
+    return `${truncated}...`;
+  };
+
   const handleAutoGenerateSeo = async () => {
     if (!selectedPlatform) return;
     setIsGenerating(true);
@@ -49,10 +58,9 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
       const { data } = await response.json();
       
       const brandName = selectedPlatform.name;
-      const code = selectedPlatform.promoCode || 'MAXBOOST500';
 
-      const generatedTitle = `${brandName} Promo Code ${code} | 500% Deposit Bonus 2026`;
-      const generatedKeywords = `${brandName.toLowerCase()} promo code, ${brandName.toLowerCase()} bonus code, ${brandName.toLowerCase()} welcome bonus 500%, ${brandName.toLowerCase()} free spins 2026, ${code}`;
+      const generatedTitle = truncateSeoText(data.title, 60);
+      const generatedKeywords = data.keywords;
       
       let newReviewContent = selectedPlatform.reviewContent || `# ${brandName} Review\n\n`;
       newReviewContent += `\n\n## Platform Overview\n${data.description}\n\n## Frequently Asked Questions\n\n`;
@@ -68,7 +76,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
             ? {
                 ...p,
                 metaTitle: generatedTitle,
-                metaDescription: data.description,
+                metaDescription: truncateSeoText(data.description, 160),
                 metaKeywords: generatedKeywords,
                 reviewContent: newReviewContent.trim()
               }
@@ -229,6 +237,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
               <input
                 type="text"
                 value={selectedPlatform.metaTitle || ''}
+                maxLength={60}
                 onChange={e => handleUpdateField('metaTitle', e.target.value)}
                 placeholder={`${selectedPlatform.name} Promo Code ${selectedPlatform.promoCode || 'MAXBOOST500'} | 500% Welcome Bonus`}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs font-bold focus:border-purple-500 outline-none"
@@ -251,6 +260,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
               <textarea
                 rows={3}
                 value={selectedPlatform.metaDescription || ''}
+                maxLength={160}
                 onChange={e => handleUpdateField('metaDescription', e.target.value)}
                 placeholder={`Get official 500% welcome bonus promo code for ${selectedPlatform.name}. Claim 200 free spins and instant payouts.`}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs focus:border-purple-500 outline-none leading-relaxed"

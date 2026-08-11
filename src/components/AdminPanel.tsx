@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from '../types';
 import {
   LayoutDashboard,
+  Activity,
   Gamepad2,
   Settings,
   BarChart2,
@@ -50,6 +51,15 @@ interface AdminPanelProps {
   onSaveConfig: (updatedConfig: GlobalConfig) => void;
   onUpdateSubPartnerStatus?: (id: string, status: 'approved' | 'contacted' | 'pending') => void;
 }
+
+
+// Helper to truncate text
+const truncateSeoText = (text: string | undefined, max: number) => {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  const truncated = text.substring(0, max - 3).trim();
+  return `${truncated}...`;
+};
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   token,

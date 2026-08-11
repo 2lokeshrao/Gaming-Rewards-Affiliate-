@@ -144,7 +144,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
               {platforms.map(p => (
                 <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
                   <td className="p-3.5 flex items-center gap-2.5">
-                    <img src={p.logoUrl} alt={p.name} className="w-7 h-7 rounded-lg object-cover" />
+                    <img src={p.logoUrl} alt={p.name} width="28" height="28" loading="lazy" decoding="async" className="w-7 h-7 rounded-lg object-cover" />
                     <div>
                       <span className="font-extrabold text-white block">{p.name}</span>
                       <span className="text-[10px] text-slate-400">{(p.category || 'Casino').toUpperCase()}</span>

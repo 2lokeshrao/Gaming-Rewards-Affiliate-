@@ -392,6 +392,10 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                         <img
                           src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
                           alt={panel.platformName}
+                          width="32"
+                          height="32"
+                          loading="lazy"
+                          decoding="async"
                           className="w-8 h-8 rounded-lg object-cover border border-slate-700 bg-slate-950"
                         />
                         <div>

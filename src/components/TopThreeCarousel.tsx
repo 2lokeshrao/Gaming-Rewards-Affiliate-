@@ -95,6 +95,9 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                     <img
                       src={p.logoUrl}
                       alt={p.name}
+                      width="56"
+                      height="56"
+                      fetchPriority="high"
                       className="w-14 h-14 rounded-xl object-cover border-2 border-slate-700/80 shadow-md bg-slate-800"
                     />
                     <div>

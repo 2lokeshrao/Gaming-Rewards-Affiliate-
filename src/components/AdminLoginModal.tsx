@@ -55,13 +55,13 @@ export const AdminLoginModal: React.FC<AdminLoginProps> = ({ onLogin, onClose })
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Enter Admin Passcode (Default: admin123)"
+                placeholder="Enter Admin Passcode (Default: @dmin123)"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white text-sm focus:border-purple-500 outline-none placeholder:text-slate-600"
               />
               <KeyRound className="w-4 h-4 text-slate-500 absolute right-3.5 top-3.5" />
             </div>
             <span className="text-[11px] text-slate-500 block text-left mt-1">
-              Default demo password: <code className="text-amber-400 font-mono">admin123</code>
+              Default demo password: <code className="text-amber-400 font-mono">ADMIN</code>
             </span>
           </div>
 

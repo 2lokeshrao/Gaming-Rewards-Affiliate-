@@ -984,6 +984,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <span>Active on Landing Page</span>
                     </label>
                   </div>
+                  {editingPlatform.isFeatured && (
+                    <div className="pt-2">
+                      <label className="block text-slate-400 font-bold text-[11px] mb-1">Featured Rank (Gold, Silver, Bronze)</label>
+                      <select
+                        value={editingPlatform.featuredRank || ''}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setEditingPlatform({ ...editingPlatform, featuredRank: val ? parseInt(val, 10) : null });
+                        }}
+                        className="w-full sm:w-1/2 bg-slate-900 border border-slate-800 rounded p-2 text-white text-xs font-medium focus:border-amber-500 outline-none"
+                      >
+                        <option value="">No Special Rank</option>
+                        <option value="1">🥇 Rank 1: Gold</option>
+                        <option value="2">🥈 Rank 2: Silver</option>
+                        <option value="3">🥉 Rank 3: Bronze</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-3 pt-3">
                     <button
@@ -1075,9 +1093,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             </button>
 
                             {p.isFeatured && (
-                              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <Flame className="w-3 h-3 text-amber-400 fill-amber-400" />
-                                Top
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${p.featuredRank === 1 ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' : p.featuredRank === 2 ? 'bg-slate-300/20 text-slate-300 border-slate-300/40' : p.featuredRank === 3 ? 'bg-orange-600/30 text-orange-300 border-orange-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'}`}>
+                                <Flame className="w-3 h-3 fill-current" />
+                                {p.featuredRank === 1 ? 'Gold' : p.featuredRank === 2 ? 'Silver' : p.featuredRank === 3 ? 'Bronze' : 'Top'}
                               </span>
                             )}
                           </div>

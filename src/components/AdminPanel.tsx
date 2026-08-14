@@ -498,6 +498,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>Custom Pages</span>
             </div>
           </button>
+
+          {/* 👇 AI Auto-Blogger और Footer & Links Manager जोड़े गए हैं */}
+          <button
+            onClick={() => setActiveTab('articles')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
+              activeTab === 'articles'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+            <span>AI Auto-Blogger</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('footer')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
+              activeTab === 'footer'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Menu className="w-5 h-5 text-cyan-400" />
+            <span>Footer & Links Manager</span>
+          </button>
+
           <button 
             onClick={() => setActiveTab('subpartners')}
             className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between cursor-pointer transition-colors ${
@@ -1034,7 +1060,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           onClick={() => {
                             const name = editingPlatform.name || 'Gaming Platform';
                             const code = editingPlatform.promoCode || 'MAXBOOST500';
-                                                        const generatedTitle = truncateSeoText(`${name} Promo Code ${code} | 500% Deposit Bonus 2026`, 60);
+                            const generatedTitle = truncateSeoText(`${name} Promo Code ${code} | 500% Deposit Bonus 2026`, 60);
                             const generatedDesc = truncateSeoText(`Official verified promo code for ${name}. Use code ${code} during registration to claim 500% welcome bonus + 200 free spins instantly.`, 160);
                             setEditingPlatform({
                               ...editingPlatform,
@@ -1158,7 +1184,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                                        {platforms.map((p, index) => (
+                    {platforms.map((p, index) => (
                       <tr key={p.id} className="hover:bg-slate-800/30">
                         <td className="p-3">
                           <div className="flex flex-col items-center gap-1 w-6">
@@ -1821,5 +1847,3 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     </div>
   );
 };
-
-

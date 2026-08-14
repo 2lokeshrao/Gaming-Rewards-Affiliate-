@@ -833,9 +833,10 @@ const autoblogInterval = setInterval(async () => {
       console.error("❌ Firestore sync failed, falling back to local memory:", err);
     }
   }
-  app.listen(PORT, '0.0.0.0', () => {
+  
+startServer();
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Affiliate Hub App listening on port ${PORT}`);
   });
 }
-
-startServer();

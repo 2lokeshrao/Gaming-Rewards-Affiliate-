@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import * as admin from 'firebase-admin';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
 import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
@@ -16,7 +17,7 @@ app.use(express.json());
 
 // Initialize Firebase
 const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
-let firestoreDb: admin.firestore.Firestore | null = null;
+let firestoreDb: any = null;
 try {
   if (fs.existsSync(firebaseConfigPath)) {
     const config = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
@@ -24,13 +25,13 @@ try {
       projectId: config.projectId,
     });
     if (config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)') {
-      firestoreDb = admin.firestore(appInfo, config.firestoreDatabaseId);
+      firestoreDb = getFirestore(appInfo, config.firestoreDatabaseId);
     } else {
-      firestoreDb = admin.firestore();
+      firestoreDb = getFirestore();
     }
   } else {
     admin.initializeApp();
-    firestoreDb = admin.firestore();
+    firestoreDb = getFirestore();
   }
   console.log("Firebase initialized successfully");
 } catch (e) {
@@ -70,6 +71,7 @@ let stateSubPartners: SubPartnerApplication[] = [
   }
 ];
 
+let stateCustomPages: any[] = [];
 let stateStats: AnalyticsStats = {
   totalVisits: 1820,
   totalClicks: 840,
@@ -324,7 +326,7 @@ app.get('/api/postback/:platform', async (req, res) => {
     if (firestoreDb) {
       await firestoreDb.collection('s2s_postbacks').add({
         ...postbackData,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
+        timestamp: FieldValue.serverTimestamp()
       });
       console.log(`Saved S2S postback for ${platform} to Firestore.`);
     } else {
@@ -334,7 +336,7 @@ app.get('/api/postback/:platform', async (req, res) => {
     // Also push to local state for temporary viewing in admin
     stateTrackLogs.unshift({
       id: `pb_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
-      eventType: `postback_${event}`,
+      eventType: 'visit' as any,
       platformId: platform,
       platformName: platform,
       timestamp: new Date().toISOString(),
@@ -364,6 +366,7 @@ app.get('/api/data', (req, res) => {
     fakeWinners: stateFakeWinners,
     logs: stateTrackLogs,
     subPartners: stateSubPartners,
+    customPages: stateCustomPages,
     geo
   });
 });
@@ -423,6 +426,15 @@ app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
 });
 
 // API: Save Config (Protected)
+
+app.post('/api/admin/custom-pages', express.json(), (req, res) => {
+  const { pages } = req.body;
+  if (Array.isArray(pages)) {
+    stateCustomPages = pages;
+  }
+  res.json({ success: true });
+});
+
 app.post('/api/admin/config', verifyJwtToken, (req, res) => {
   const { config } = req.body;
   if (config) {
@@ -471,11 +483,26 @@ app.get('/go/:slug', (req, res) => {
   const { slug } = req.params;
   const userAgent = req.headers['user-agent'] || '';
   const isBot = BOT_USER_AGENTS.test(userAgent);
+  
+  // Extract tracking parameters from query string
+  const clickId = req.query.click_id || req.query.utm_source || '';
+  const sub1 = req.query.sub1 || '';
+  const sub2 = req.query.sub2 || '';
 
   const platform = statePlatforms.find(p => p.slug === slug || p.id === slug);
 
   if (!platform) {
     return res.redirect('/');
+  }
+
+  // Build the dynamic Affiliate URL with tracking parameters
+  let targetUrl = platform.rawAffiliateUrl;
+  if (clickId || sub1 || sub2) {
+    const urlObj = new URL(targetUrl);
+    if (clickId) urlObj.searchParams.set('click_id', clickId as string);
+    if (sub1) urlObj.searchParams.set('sub1', sub1 as string);
+    if (sub2) urlObj.searchParams.set('sub2', sub2 as string);
+    targetUrl = urlObj.toString();
   }
 
   // Record click count
@@ -634,7 +661,7 @@ app.get('/go/:slug', (req, res) => {
         </div>
 
         <!-- CTA Direct Button -->
-        <a id="redirectLink" href="${platform.rawAffiliateUrl}" class="block w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm uppercase tracking-wide shadow-xl shadow-amber-500/20 transform active:scale-95 transition-all">
+        <a id="redirectLink" href="${targetUrl}" class="block w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm uppercase tracking-wide shadow-xl shadow-amber-500/20 transform active:scale-95 transition-all">
           PROCEED TO OFFICIAL REGISTRATION NOW (<span id="count">2</span>s)
         </a>
 
@@ -700,7 +727,7 @@ app.get('/go/:slug', (req, res) => {
           if (countElem) countElem.innerText = redirectSeconds;
           if (redirectSeconds <= 0) {
             clearInterval(interval);
-            window.location.href = "${platform.rawAffiliateUrl}";
+            window.location.href = "${targetUrl}";
           }
         }, 1000);
       </script>
@@ -853,6 +880,140 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  
+app.post('/api/generate-article', async (req, res) => {
+  try {
+    const { topic, category, platformName, platformId } = req.body;
+    
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not set on the server.' });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    
+    const prompt = `You are an expert SEO content writer and copywriter for a gaming/finance affiliate website. 
+    Write a comprehensive, engaging, and highly SEO-optimized article about "${topic}" in the category of "${category}".
+    ${platformName ? `The article should focus heavily on the brand/platform: ${platformName}.` : ''}
+    
+    Guidelines:
+    - Use proper markdown formatting (H2, H3, bold text, bullet points).
+    - Write an engaging introduction and a strong conclusion.
+    - Naturally include relevant keywords related to the topic.
+    - Return the response as JSON matching the schema precisely.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING, description: 'A catchy, SEO-friendly H1 title' },
+            metaTitle: { type: Type.STRING, description: 'SEO Meta Title (max 60 chars)' },
+            metaDescription: { type: Type.STRING, description: 'SEO Meta Description (max 160 chars)' },
+            content: { type: Type.STRING, description: 'The full article content in Markdown format' },
+            tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: '5-7 relevant SEO tags/keywords' }
+          },
+          required: ['title', 'metaTitle', 'metaDescription', 'content', 'tags']
+        },
+        tools: [{ googleSearch: {} }] // Enable Google Search Grounding for trending info
+      }
+    });
+
+    if (!response.text) {
+      return res.status(500).json({ error: 'AI returned empty response' });
+    }
+    
+    const generated = JSON.parse(response.text);
+    res.json(generated);
+  } catch (error: any) {
+    console.error('Error generating AI article:', error);
+    res.status(500).json({ error: 'Failed to generate article: ' + error.message });
+  }
+});
+
+
+// ----------------------------------------------------------------------
+// AUTOMATED AUTO-BLOGGER BACKGROUND SERVICE
+// ----------------------------------------------------------------------
+const autoblogInterval = setInterval(async () => {
+  if (!stateConfig.autoBlogSettings?.enabled) return;
+  if (!process.env.GEMINI_API_KEY) return;
+  
+  const { categories, topics } = stateConfig.autoBlogSettings;
+  if (!categories || categories.length === 0) return;
+  
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    
+    // Pick random category and topic
+    const defaultCategories = ['Gaming', 'Crypto', 'Finance', 'Loans', 'Virtual Cards'];
+    const cats = categories && categories.length > 0 ? categories : defaultCategories;
+    const category = cats[Math.floor(Math.random() * cats.length)];
+    const defaultTopics = ['Best crypto wallets for gaming withdrawals', 'Top virtual cards for instant cashout', 'Best instant loan apps', 'Gaming platform reviews and promo codes'];
+    const tops = topics && topics.length > 0 ? topics : defaultTopics;
+    const topic = tops[Math.floor(Math.random() * tops.length)];
+
+    console.log(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
+    
+    const prompt = `You are an expert SEO copywriter. Write a comprehensive, highly engaging article about: "${topic}".
+    Category: ${category}.
+    Return ONLY valid JSON in this exact format:
+    {
+      "title": "Catchy SEO Title",
+      "content": "Markdown formatted content. At least 500 words.",
+      "metaTitle": "SEO Meta Title under 60 chars",
+      "metaDescription": "SEO Meta Description under 160 chars",
+      "tags": ["tag1", "tag2", "tag3"]
+    }`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            content: { type: Type.STRING },
+            metaTitle: { type: Type.STRING },
+            metaDescription: { type: Type.STRING },
+            tags: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ["title", "content", "metaTitle", "metaDescription", "tags"]
+        }
+      }
+    });
+
+    if (response.text) {
+      const data = JSON.parse(response.text);
+      const newArticle = {
+        id: 'art_auto_' + Math.floor(Math.random() * 1000000),
+        slug: data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+        title: data.title,
+        content: data.content,
+        category,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
+        publishedAt: new Date().toISOString(),
+        author: 'AI Auto-Blogger',
+        tags: data.tags || [],
+        views: 0,
+        status: 'draft' as const
+      };
+
+      if (!stateConfig.articles) stateConfig.articles = [];
+      stateConfig.articles = [newArticle, ...stateConfig.articles];
+      console.log(`[Auto-Blogger] Successfully created draft: ${data.title}`);
+    }
+  } catch (err) {
+    console.error('[Auto-Blogger] Error generating article:', err);
+  }
+}, (stateConfig.autoBlogSettings?.intervalHours || 24) * 60 * 60 * 1000); // Default to checking daily, but interval updates when hours change.
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Affiliate Hub App listening on port ${PORT}`);

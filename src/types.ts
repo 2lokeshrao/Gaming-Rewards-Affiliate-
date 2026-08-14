@@ -13,7 +13,7 @@ export interface PartnerPanelConfig {
     totalDepositsAmount: number; // in USD or INR
     netGamingRevenue: number;
     commissionEarned: number;
-    revSharePercent: number; // e.g. 50%
+    revSharePercent?: number; // e.g. 50%
   };
 }
 
@@ -74,6 +74,7 @@ export interface GamingPlatform {
   promoCode: string;
   rawAffiliateUrl: string;
   masterPartnerUrl?: string; // Sub-partner registration link for master panel
+  reviewContent?: string; // Custom HTML/Markdown for the brand review page
   isFeatured: boolean;
   featuredRank: number | null; // 1 (Gold), 2 (Silver), 3 (Bronze)
   isActive: boolean;
@@ -82,7 +83,6 @@ export interface GamingPlatform {
   category: string;
   bonusTitle?: string;
   minDeposit?: string;
-  reviewContent?: string;
   // Independent SEO Fields per platform
   metaTitle?: string;
   metaDescription?: string;
@@ -132,6 +132,8 @@ export interface GlobalConfig {
   pushNotifications?: PushNotificationAlert[];
   abTestConfig?: AbTestConfig;
   partnerPanelConfigs?: PartnerPanelConfig[];
+  // Ads
+  sidebarAdHtml?: string;
   // Social Media Links
   telegramUrl?: string;
   instagramUrl?: string;
@@ -141,6 +143,19 @@ export interface GlobalConfig {
   // Security & Admin Stealth Settings
   hideAdminLink?: boolean;
   secretKeyTrigger?: string; // e.g. "Ctrl+Shift+A" or secret keyword
+  // Dynamic Footer
+  footerColumns?: FooterColumn[];
+  copyrightText?: string;
+  footerDisclaimerText?: string;
+  // AI Articles
+  articles?: AIArticle[];
+  autoBlogSettings?: {
+    enabled: boolean;
+    intervalHours: number;
+    categories: string[];
+    topics: string[];
+  };
+
   // Email Eligibility Checker Settings
   registeredEmailsList?: string[];
   strictEmailChecking?: boolean;
@@ -204,4 +219,41 @@ export interface UserGeo {
   city: string;
   ip: string;
   flag: string;
+}
+
+export interface CustomPage {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  isActive: boolean;
+}
+
+export interface AIArticle {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  category: string;
+  platformId?: string;
+  platformName?: string;
+  metaTitle: string;
+  metaDescription: string;
+  coverImage?: string;
+  publishedAt: string;
+  author: string;
+  tags: string[];
+  views: number;
+  status?: 'draft' | 'published';
+}
+
+export interface FooterLink {
+  label: string;
+  url: string;
+}
+
+export interface FooterColumn {
+  id: string;
+  title: string;
+  links: FooterLink[];
 }

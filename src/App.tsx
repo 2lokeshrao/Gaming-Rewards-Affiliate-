@@ -1,3 +1,4 @@
+import { AiArticleView } from "./components/AiArticleView";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, WinnerTickerItem, UserGeo, SubPartnerApplication } from './types';
 import { injectFaqSchemaInHead, injectGoogleSiteVerification } from './utils/seo';
@@ -11,16 +12,33 @@ import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw, Globe } fro
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsConditions } from './components/TermsConditions';
 import { TopLoadingBar } from './components/TopLoadingBar';
+import { WalletArticlePage } from './components/WalletArticlePage';
+import { FinancialHubPage } from './components/FinancialHubPage';
+
+import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
+import { CustomPageView } from './components/CustomPageView';
+import { CustomPage } from './types';
+import { BrandArticlePage } from './components/BrandArticlePage';
+
+
 import { AdContainer } from './components/AdContainer';
 import { AppSkeleton } from './components/Skeletons';
 import { ToastNotification } from './components/ToastNotification';
 import { PwaInstallModal } from './components/PwaInstallModal';
 import { ReferFriendModal } from './components/ReferFriendModal';
 
+import { useLanguage } from './i18n/LanguageContext';
+import { formatLocalizedBonus } from './utils/currency';
+
+import { Language } from './i18n/translations';
+
 // Code-Splitting with React.lazy for heavy components & modals
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
 const SeoContentSection = lazy(() => import('./components/SeoContentSection').then(m => ({ default: m.SeoContentSection })));
+const ProgrammaticSeoArticles = lazy(() => import('./components/ProgrammaticSeoArticles').then(m => ({ default: m.ProgrammaticSeoArticles })));
 const FaqSection = lazy(() => import('./components/FaqSection').then(m => ({ default: m.FaqSection })));
+const PaymentGuideSection = lazy(() => import('./components/PaymentGuideSection').then(m => ({ default: m.PaymentGuideSection })));
 const CustomCouponsSection = lazy(() => import('./components/CustomCouponsSection').then(m => ({ default: m.CustomCouponsSection })));
 const LuckyWheelModal = lazy(() => import('./components/LuckyWheelModal').then(m => ({ default: m.LuckyWheelModal })));
 const SubPartnerModal = lazy(() => import('./components/SubPartnerModal').then(m => ({ default: m.SubPartnerModal })));
@@ -31,6 +49,7 @@ const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m
 const ExitIntentModal = lazy(() => import('./components/ExitIntentModal').then(m => ({ default: m.ExitIntentModal })));
 
 export default function App() {
+  const { language, setLanguage, t } = useLanguage();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   
   useEffect(() => {
@@ -52,6 +71,7 @@ export default function App() {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [fakeWinners, setFakeWinners] = useState<WinnerTickerItem[]>([]);
   const [logs, setLogs] = useState<TrackLog[]>([]);
+  const [customPages, setCustomPages] = useState<CustomPage[]>([]);
   const [subPartners, setSubPartners] = useState<SubPartnerApplication[]>([]);
   const [geo, setGeo] = useState<UserGeo>({
     country: 'United States',
@@ -137,6 +157,7 @@ export default function App() {
         setFakeWinners(data.fakeWinners);
         setLogs(data.logs);
         if (data.subPartners) setSubPartners(data.subPartners);
+        if (data.customPages) setCustomPages(data.customPages);
         if (data.geo) {
           setGeo(data.geo);
           
@@ -280,6 +301,18 @@ export default function App() {
     }
   };
 
+  // Capture Click ID / URL Params on load for S2S Postback Tracking
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const clickId = params.get('click_id') || params.get('utm_source');
+    const sub1 = params.get('sub1');
+    const sub2 = params.get('sub2');
+    
+    if (clickId) sessionStorage.setItem('tracker_click_id', clickId);
+    if (sub1) sessionStorage.setItem('tracker_sub1', sub1);
+    if (sub2) sessionStorage.setItem('tracker_sub2', sub2);
+  }, []);
+
   // Claim click handler -> Activates 10 min urgency timer & redirects to /go/slug
   const handleClaimClick = (p: GamingPlatform) => {
     trackEvent('click', p.id);
@@ -295,7 +328,15 @@ export default function App() {
       sessionStorage.setItem('active_urgency_timer', JSON.stringify(timerData));
     } catch {}
 
-    window.open(`/go/${p.slug}`, '_blank');
+    // Append tracked parameters to the outbound cloak link
+    const clickId = sessionStorage.getItem('tracker_click_id') || '';
+    const sub1 = sessionStorage.getItem('tracker_sub1') || geo.countryCode || '';
+    const sub2 = sessionStorage.getItem('tracker_sub2') || 'bonuspromocode_web';
+    
+    let target = `/go/${p.slug}?sub1=${sub1}&sub2=${sub2}`;
+    if (clickId) target += `&click_id=${clickId}`;
+
+    window.open(target, '_blank');
   };
 
   // Submit Feedback Handler (adds to pending queue for Admin Approval)
@@ -336,7 +377,14 @@ export default function App() {
       sessionStorage.setItem('active_urgency_timer', JSON.stringify(timerData));
     } catch {}
 
-    window.open(`/go/${p.slug}`, '_blank');
+    const clickId = sessionStorage.getItem('tracker_click_id') || '';
+    const sub1 = sessionStorage.getItem('tracker_sub1') || geo.countryCode || '';
+    const sub2 = sessionStorage.getItem('tracker_sub2') || 'bonuspromocode_web_wheel';
+    
+    let target = `/go/${p.slug}?sub1=${sub1}&sub2=${sub2}`;
+    if (clickId) target += `&click_id=${clickId}`;
+
+    window.open(target, '_blank');
     setShowWheelModal(false);
   };
 
@@ -433,12 +481,113 @@ export default function App() {
         onSavePlatforms={handleSavePlatformsFromAdmin}
         onSaveConfig={handleSaveConfigFromAdmin}
         onUpdateSubPartnerStatus={handleUpdateSubPartnerStatus}
+        customPages={customPages}
+        onSaveCustomPages={setCustomPages}
       />
       </Suspense>
     );
   }
 
   // Basic Client-Side Routing for static pages
+
+  
+  // Custom Page Routing
+
+  const customPageMatch = customPages.find(p => currentPath === `/${p.slug}`);
+  const articleMatch = config?.articles?.find(a => currentPath === `/blog/${a.slug}`);
+
+  if (articleMatch) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-400">Loading Article...</div>}>
+        <AiArticleView article={articleMatch} platforms={platforms} customPages={customPages} config={config!} geo={geo} onClaimClick={handleClaimClick} />
+      </Suspense>
+    );
+  }
+
+  if (customPageMatch) {
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <Navbar platforms={platforms} customPages={customPages} geo={geo} onOpenAppModal={() => setShowPwaModal(true)} />
+        <CustomPageView page={customPageMatch} platforms={platforms} customPages={customPages} config={config} />
+        <Footer
+          platforms={platforms}
+          customPages={customPages}
+          geo={geo}
+          config={config}
+          setShowSubPartnerModal={setShowSubPartnerModal}
+          setShowReferModal={setShowReferModal}
+          setShowAdminLogin={setShowAdminLogin}
+          adminToken={adminToken}
+          setViewingAdmin={setViewingAdmin}
+        />
+      </>
+    );
+  }
+
+  // Dynamic Brand Pages (Programmatic SEO Category 1)
+  if (currentPath.startsWith('/brands/')) {
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <Navbar platforms={platforms} customPages={customPages} geo={geo} onOpenAppModal={() => setShowPwaModal(true)} />
+        <BrandArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} onClaimClick={handleClaimClick} />
+        <Footer
+          platforms={platforms}
+          customPages={customPages}
+          geo={geo}
+          config={config}
+          setShowSubPartnerModal={setShowSubPartnerModal}
+          setShowReferModal={setShowReferModal}
+          setShowAdminLogin={setShowAdminLogin}
+          adminToken={adminToken}
+          setViewingAdmin={setViewingAdmin}
+        />
+      </>
+    );
+  }
+
+  // Financial Hub Routing (Programmatic SEO Category 3)
+  if (currentPath.startsWith('/banking') || currentPath.startsWith('/loans') || currentPath.startsWith('/finance') || currentPath.startsWith('/payments/credit-card')) {
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <FinancialHubPage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} />
+        <Footer
+          platforms={platforms}
+          customPages={customPages}
+          geo={geo}
+          config={config}
+          setShowSubPartnerModal={setShowSubPartnerModal}
+          setShowReferModal={setShowReferModal}
+          setShowAdminLogin={setShowAdminLogin}
+          adminToken={adminToken}
+          setViewingAdmin={setViewingAdmin}
+        />
+      </>
+    );
+  }
+
+  if (currentPath.startsWith('/wallets/') || currentPath.startsWith('/crypto/') || currentPath.startsWith('/payments/')) {
+    return (
+      <>
+        <TopLoadingBar isLoading={isNavigating} />
+        <WalletArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} />
+        <Footer
+          platforms={platforms}
+          customPages={customPages}
+          geo={geo}
+          config={config}
+          setShowSubPartnerModal={setShowSubPartnerModal}
+          setShowReferModal={setShowReferModal}
+          setShowAdminLogin={setShowAdminLogin}
+          adminToken={adminToken}
+          setViewingAdmin={setViewingAdmin}
+        />
+      </>
+    );
+  }
+
   if (currentPath === '/privacy-policy') {
     return (
       <>
@@ -468,56 +617,18 @@ export default function App() {
         {/* Social Media VIP Channels Banner */}
         <SocialMediaBar config={config} variant="banner" />
         
-        {/* Nav Bar */}
-        <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-amber-400" />
-            <span className="font-black tracking-tight text-white text-lg">BonusPromoCode</span>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="relative group flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
-              <Globe className="w-4 h-4 text-slate-400 mr-1" />
-              <select 
-                className="bg-transparent text-xs text-slate-200 outline-none cursor-pointer appearance-none pr-4"
-                onChange={(e) => {
-                  const lang = e.target.value;
-                  const cookieVal = `/en/${lang}`;
-                  document.cookie = `googtrans=${cookieVal}; path=/`;
-                  document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname}`;
-                  window.location.reload();
-                }}
-                defaultValue={(() => {
-                  const match = typeof document !== 'undefined' ? document.cookie.match(/googtrans=\/en\/([a-z]{2})/) : null;
-                  return match ? match[1] : 'en';
-                })()}
-              >
-                <option value="en" className="bg-slate-900 text-slate-200">English (EN)</option>
-                <option value="hi" className="bg-slate-900 text-slate-200">Hindi (HI)</option>
-                <option value="pt" className="bg-slate-900 text-slate-200">Portuguese (PT)</option>
-                <option value="es" className="bg-slate-900 text-slate-200">Spanish (ES)</option>
-                <option value="ru" className="bg-slate-900 text-slate-200">Russian (RU)</option>
-                <option value="bn" className="bg-slate-900 text-slate-200">Bengali (BN)</option>
-              </select>
-            </div>
-            <button 
-              onClick={() => setShowPwaModal(true)}
-              className="bg-amber-400 text-slate-900 px-4 py-1.5 text-sm font-black rounded-xl hover:bg-amber-300 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" /> 
-              <span className="hidden sm:inline">Get Our App</span>
-              <span className="sm:hidden">App</span>
-            </button>
-          </div>
-        </div>
+
+        <Navbar platforms={platforms} customPages={customPages} geo={geo} onOpenAppModal={() => setShowPwaModal(true)} />
+
+        
       </header>
 
       {/* Main Container */}
       <main className="pb-16">
         {/* 2. Hero Section */}
         <HeroSection
-          headline={config.heroHeadline}
-          subheading={config.heroSubheading}
+          headline={formatLocalizedBonus(config.heroHeadline, language)}
+          subheading={formatLocalizedBonus(config.heroSubheading, language)}
           onScrollToOffers={scrollToOffers}
           onOpenEmailChecker={() => setShowEmailCheckerModal(true)}
           abTestConfig={config.abTestConfig}
@@ -541,7 +652,7 @@ export default function App() {
             className="px-6 py-3 rounded-full bg-slate-900 border border-purple-500/50 hover:border-purple-400 text-purple-300 font-extrabold text-xs sm:text-sm shadow-lg shadow-purple-950/40 flex items-center gap-2 cursor-pointer transform hover:scale-105 transition-transform"
           >
             <Mail className="w-4 h-4 text-purple-400" />
-            <span>CHECK EMAIL ELIGIBILITY (GET 500% BONUS)</span>
+            <span>{t('hero.checkEmail')}</span>
           </button>
 
           {config.enableLuckyWheel && (
@@ -550,7 +661,7 @@ export default function App() {
               className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 font-black text-xs sm:text-sm text-white shadow-xl shadow-purple-600/30 flex items-center gap-2 cursor-pointer transform hover:scale-105 transition-transform"
             >
               <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
-              <span>SPIN LUCKY WHEEL FOR EXTRA 500% BONUS!</span>
+              <span>{t('hero.spinWheel')}</span>
             </button>
           )}
 
@@ -560,7 +671,7 @@ export default function App() {
               className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-500 hover:from-cyan-500 hover:to-emerald-400 font-black text-xs sm:text-sm text-white shadow-xl shadow-cyan-600/30 flex items-center gap-2 cursor-pointer transform hover:scale-105 transition-transform"
             >
               <Users className="w-4 h-4 text-cyan-200" />
-              <span>BECOME SUB-PARTNER (EARN 50% REVSHARE)</span>
+              <span>{t('hero.subPartner')}</span>
             </button>
           )}
         </div>
@@ -587,11 +698,21 @@ export default function App() {
           />
 
           {/* 6. SEO Article & Keyword Index Table */}
-          <SeoContentSection
+          <ProgrammaticSeoArticles
+            platforms={platforms}
+            geo={geo}
+            onClaimClick={handleClaimClick}
+          />
+
+          {/* Original Table */}
+          <SeoContentSection geo={geo}
             platforms={platforms}
             customCoupons={config.customCoupons || []}
             onClaimClick={handleClaimClick}
           />
+
+          {/* 7. FAQ Section */}
+          <PaymentGuideSection geo={geo} />
 
           {/* 7. FAQ Section */}
           <FaqSection />
@@ -599,69 +720,17 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 border-t border-slate-800/80 py-10 px-4 text-center text-slate-400 text-xs">
-        <div className="max-w-5xl mx-auto space-y-4">
-          <div className="flex items-center justify-center gap-2 font-bold text-slate-200">
-            <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>BonusPromoCode.in Affiliate Portal &copy; {new Date().getFullYear()}</span>
-          </div>
-
-          {/* Social Media Footer Icons */}
-          <div className="flex justify-center py-2">
-            <SocialMediaBar config={config} variant="footer" />
-          </div>
-
-          <p className="max-w-3xl mx-auto leading-relaxed text-slate-400 text-[11px]">
-            This site is an independent gaming review and affiliate portal. We provide promotional bonus codes and reviews for licensed online gaming and sports platforms. Please gamble responsibly. 18+ Only. <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/privacy-policy'); window.dispatchEvent(new PopStateEvent('popstate')); }} className="underline hover:text-amber-400 ml-2">Privacy Policy</a> | <a href="/terms" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/terms'); window.dispatchEvent(new PopStateEvent('popstate')); }} className="underline hover:text-amber-400 ml-2">Terms & Conditions</a>
-          </p>
-
-          <div className="flex items-center justify-center gap-4 text-[11px] pt-2">
-            <button
-              onClick={() => setShowSubPartnerModal(true)}
-              className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer bg-slate-800/80 px-3 py-1 rounded-md border border-cyan-500/30"
-            >
-              <Users className="w-3 h-3" /> Become a Sub-Partner Agent
-            </button>
-
-            <button
-              onClick={() => setShowReferModal(true)}
-              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer bg-slate-800/80 px-3 py-1 rounded-md border border-emerald-500/30"
-            >
-              Refer a Friend
-            </button>
-
-            {/* Stealth Admin Access - If hideAdminLink is true, render a subtle lock icon button */}
-            {config.hideAdminLink ? (
-              <button
-                onClick={() => {
-                  if (adminToken) {
-                    setViewingAdmin(true);
-                  } else {
-                    setShowAdminLogin(true);
-                  }
-                }}
-                className="opacity-20 hover:opacity-100 transition-opacity p-1 text-slate-600 hover:text-amber-400 cursor-pointer"
-                title="Secret Admin Access (or press Ctrl+Shift+A)"
-              >
-                <Lock className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  if (adminToken) {
-                    setViewingAdmin(true);
-                  } else {
-                    setShowAdminLogin(true);
-                  }
-                }}
-                className="text-slate-400 hover:text-amber-400 underline flex items-center gap-1 cursor-pointer"
-              >
-                <Lock className="w-3 h-3" /> Admin Portal
-              </button>
-            )}
-          </div>
-        </div>
-      </footer>
+      <Footer
+        platforms={platforms}
+        customPages={customPages}
+        geo={geo}
+        config={config}
+        setShowSubPartnerModal={setShowSubPartnerModal}
+        setShowReferModal={setShowReferModal}
+        setShowAdminLogin={setShowAdminLogin}
+        adminToken={adminToken}
+        setViewingAdmin={setViewingAdmin}
+      />
 
       {/* Pop-up Modals & Floating Components */}
       <Suspense fallback={null}>
@@ -745,7 +814,7 @@ export default function App() {
         onClick={() => setShowPwaModal(true)}
         className="fixed bottom-24 right-4 z-[5000] bg-amber-400 text-slate-900 rounded-full px-4 py-2 font-black shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-transform flex items-center gap-2 border border-amber-300"
       >
-        <span className="text-xs uppercase tracking-wider">Get Our App</span>
+        <span className="text-xs uppercase tracking-wider">{t('nav.getApp')}</span>
       </button>
 
       {/* Live Winners Toast Ticker */}

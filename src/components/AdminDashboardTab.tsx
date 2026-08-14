@@ -112,12 +112,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
           ...item,
           lastSyncedAt: new Date().toISOString(),
           stats: {
-            ...item.stats,
-            totalRegistrations: item.stats.totalRegistrations + extraRegs,
-            ftdCount: item.stats.ftdCount + extraFtds,
-            totalDepositsAmount: item.stats.totalDepositsAmount + extraDep,
-            netGamingRevenue: item.stats.netGamingRevenue + extraNgr,
-            commissionEarned: item.stats.commissionEarned + extraCommission
+            ...(item.stats || {}),
+            totalRegistrations: (item.stats?.totalRegistrations || 0) + extraRegs,
+            ftdCount: (item.stats?.ftdCount || 0) + extraFtds,
+            totalDepositsAmount: (item.stats?.totalDepositsAmount || 0) + extraDep,
+            netGamingRevenue: (item.stats?.netGamingRevenue || 0) + extraNgr,
+            commissionEarned: (item.stats?.commissionEarned || 0) + extraCommission
           }
         };
       });
@@ -415,33 +415,33 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
 
                     {/* Registrations */}
                     <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
-                      {panel.stats.totalRegistrations.toLocaleString()}
+                      {(panel.stats?.totalRegistrations || 0).toLocaleString()}
                     </td>
 
                     {/* FTDs */}
                     <td className="p-3.5 text-right font-mono font-bold text-emerald-400 text-sm">
-                      {panel.stats.ftdCount.toLocaleString()}
+                      {(panel.stats?.ftdCount || 0).toLocaleString()}
                     </td>
 
                     {/* Total Deposits */}
                     <td className="p-3.5 text-right font-mono text-slate-300 text-xs">
-                      {formatAmount(panel.stats.totalDepositsAmount)}
+                      {formatAmount(panel.stats?.totalDepositsAmount || 0)}
                     </td>
 
                     {/* Net Gaming Revenue */}
                     <td className="p-3.5 text-right font-mono text-cyan-300 text-xs">
-                      {formatAmount(panel.stats.netGamingRevenue)}
+                      {formatAmount(panel.stats?.netGamingRevenue || 0)}
                     </td>
 
                     {/* Earnings */}
                     <td className="p-3.5 text-right font-mono font-black text-amber-400 text-sm">
-                      {formatAmount(panel.stats.commissionEarned)}
+                      {formatAmount(panel.stats?.commissionEarned || 0)}
                     </td>
 
                     {/* RevShare % */}
                     <td className="p-3.5 text-center font-bold text-purple-300 text-xs">
                       <span className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30">
-                        {panel.stats.revSharePercent}%
+                        {panel.stats?.revSharePercent || 0}%
                       </span>
                     </td>
 

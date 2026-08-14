@@ -2,7 +2,10 @@ import React from 'react';
 import { GamingPlatform, CustomCoupon } from '../types';
 import { Search, Sparkles, CheckCircle2, Flame, Award, ShieldCheck, Tag, Ticket } from 'lucide-react';
 
+import { UserGeo } from '../types';
+
 interface SeoContentSectionProps {
+  geo: UserGeo;
   platforms: GamingPlatform[];
   customCoupons?: CustomCoupon[];
   onClaimClick: (platform: GamingPlatform) => void;
@@ -12,6 +15,7 @@ interface SeoContentSectionProps {
 export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
   platforms,
   customCoupons = [],
+  geo,
   onClaimClick,
   onCustomCouponClaim
 }) => {
@@ -109,7 +113,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
           <span>TOP SEARCHED CASINO & GAMING PROMO CODES 2026</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-          Official Promo Codes for 1Win, Mostbet, Stake & Custom Events
+          {geo.country || "Global"} Official Promo Codes for 1Win, Mostbet, Stake & Custom Events
         </h2>
         <p className="text-slate-300 text-xs sm:text-sm mt-2 max-w-2xl mx-auto leading-relaxed">
           Looking for verified <strong>1Win promo code today</strong>, <strong>Mostbet deposit bonus</strong>, or <strong>IPL 2026 special promo codes</strong>? Claim up to 500% welcome deposit bonus + 200 free spins instantly.

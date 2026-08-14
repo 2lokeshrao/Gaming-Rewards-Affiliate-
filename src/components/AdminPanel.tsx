@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from '../types';
+import MDEditor from '@uiw/react-md-editor';
+import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication, CustomPage } from '../types';
 import {
   LayoutDashboard,
   ChevronUp,
@@ -39,7 +40,11 @@ import { SitemapManagerTab } from './SitemapManagerTab';
 import { PushNotificationManagerTab } from './PushNotificationManagerTab';
 import { AbTestDashboardTab } from './AbTestDashboardTab';
 import { AdminDashboardTab } from './AdminDashboardTab';
-import { Target, Globe, MessageSquare, QrCode, Bell, Sliders } from 'lucide-react';
+import { AiArticleManagerTab } from './AiArticleManagerTab';
+import { CustomPageManagerTab } from './CustomPageManagerTab';
+
+import { FooterManagerTab } from './FooterManagerTab';
+import { Target, Globe, MessageSquare, QrCode, Bell, Sliders, FileText } from 'lucide-react';
 
 interface AdminPanelProps {
   token: string;
@@ -52,6 +57,8 @@ interface AdminPanelProps {
   onSavePlatforms: (updated: GamingPlatform[]) => void;
   onSaveConfig: (updatedConfig: GlobalConfig) => void;
   onUpdateSubPartnerStatus?: (id: string, status: 'approved' | 'contacted' | 'pending') => void;
+  customPages?: CustomPage[];
+  onSaveCustomPages?: (pages: CustomPage[]) => void;
 }
 
 
@@ -73,9 +80,59 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   subPartners,
   onSavePlatforms,
   onSaveConfig,
-  onUpdateSubPartnerStatus
+  onUpdateSubPartnerStatus,
+  customPages,
+  onSaveCustomPages
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'partnerapi' | 'platforms' | 'config' | 'coupons' | 'analytics' | 'subpartners' | 'seo' | 'feedback' | 'pixels' | 'sitemap' | 'push' | 'abtest'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'partnerapi' | 'platforms' | 'config' | 'coupons' | 'analytics' | 'subpartners' | 'seo' | 'feedback' | 'pixels' | 'sitemap' | 'push' | 'abtest' | 'pages' | 'articles' | 'footer'>('dashboard');
+
+  // CMS state
+  const [pagesList, setPagesList] = useState<CustomPage[]>(customPages || []);
+
+  useEffect(() => {
+    if (customPages) {
+      setPagesList(customPages);
+    }
+  }, [customPages]);
+
+  const [pageTitle, setPageTitle] = useState('');
+  const [pageSlug, setPageSlug] = useState('');
+  const [pageContent, setPageContent] = useState('');
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+
+  const handleAddOrUpdatePage = () => {
+    if (!pageTitle || !pageSlug || !pageContent) return;
+    
+    let updated;
+    if (editingPageId) {
+      updated = pagesList.map(p => p.id === editingPageId ? { ...p, title: pageTitle, slug: pageSlug, content: pageContent } : p);
+    } else {
+      updated = [...pagesList, { id: 'page_' + Date.now(), slug: pageSlug, title: pageTitle, content: pageContent, isActive: true }];
+    }
+    setPagesList(updated);
+    setPageTitle('');
+    setPageSlug('');
+    setPageContent('');
+    setEditingPageId(null);
+  };
+
+  const handleEditPage = (page: CustomPage) => {
+    setEditingPageId(page.id);
+    setPageTitle(page.title);
+    setPageSlug(page.slug);
+    setPageContent(page.content);
+  };
+
+  const handleDeletePage = (id: string) => {
+    if(confirm('Are you sure you want to delete this page?')) {
+      setPagesList(pagesList.filter(p => p.id !== id));
+    }
+  };
+
+  const handleSavePages = () => {
+    if (onSaveCustomPages) onSaveCustomPages(pagesList);
+    alert('Pages saved successfully!');
+  };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Platform editing state
@@ -274,11 +331,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 activeTab === 'config' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
               }`}
             >
-              <Settings className="w-4 h-4" />
+              <Edit3 className="w-4 h-4" />
               <span>Global Page Elements</span>
+            </button>
+                            <button 
+              onClick={() => setActiveTab('pages')}
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between cursor-pointer ${
+                activeTab === 'pages' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Custom Pages</span>
+              </div>
             </button>
 
             <button
+              onClick={() => { setActiveTab('articles'); setIsMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-3 transition-all ${
+                activeTab === 'articles' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
+              } hover:bg-slate-800`}
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <span>AI Auto-Blogger</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('footer'); setIsMobileMenuOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-3 transition-all ${
+                activeTab === 'footer' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
+              } hover:bg-slate-800`}
+            >
+              <div className="flex items-center gap-2">
+                <Menu className="w-4 h-4 text-cyan-400" />
+                <span>Footer & Links Manager</span>
+              </div>
+            </button>
+
+            <button 
               onClick={() => { setActiveTab('subpartners'); setIsMobileMenuOpen(false); }}
               className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between cursor-pointer ${
                 activeTab === 'subpartners' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
@@ -325,9 +417,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>SEO Content Manager</span>
             </button>
             <button
-              onClick={() => { setActiveTab('seo_health'); setIsMobileMenuOpen(false); }}
+              onClick={() => { setActiveTab('seo'); setIsMobileMenuOpen(false); }}
               className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer ${
-                activeTab === 'seo_health' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
+                activeTab === 'seo' ? 'bg-purple-600 text-white' : 'bg-slate-950 text-slate-300'
               }`}
             >
               <Activity className="w-4 h-4 text-blue-400" />
@@ -394,6 +486,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('pages')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between cursor-pointer transition-colors ${
+              activeTab === 'pages'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-5 h-5" />
+              <span>Custom Pages</span>
+            </div>
+          </button>
+          <button 
             onClick={() => setActiveTab('subpartners')}
             className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between cursor-pointer transition-colors ${
               activeTab === 'subpartners'
@@ -448,9 +553,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <span>SEO Content Manager</span>
           </button>
           <button
-            onClick={() => setActiveTab('seo_health')}
+            onClick={() => setActiveTab('seo')}
             className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
-              activeTab === 'seo_health'
+              activeTab === 'seo'
                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
                 : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
             }`}
@@ -532,6 +637,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onSaveConfig={onSaveConfig}
             />
           )}
+
+
+
 
           {/* TAB: PARTNER API INTEGRATION SETTINGS */}
           {activeTab === 'partnerapi' && (
@@ -899,6 +1007,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       />
                     </div>
 
+                    
+                    <div className="sm:col-span-2 mt-4" data-color-mode="dark">
+                      <label className="block text-amber-400 font-bold mb-2 text-sm border-b border-slate-800 pb-2 flex justify-between items-center">
+                        <span>Custom Review Content (Optional)</span>
+                        <span className="text-slate-500 text-[10px] font-normal tracking-wide uppercase">Overrides default SEO template</span>
+                      </label>
+                      <MDEditor
+                        value={editingPlatform.reviewContent || ''}
+                        onChange={(val) => setEditingPlatform({...editingPlatform, reviewContent: val || ''})}
+                        height={400}
+                        style={{ backgroundColor: '#020617' }}
+                      />
+                      <p className="text-[10px] text-slate-500 mt-2">Use Markdown to format. If left empty, the programmatic SEO template will be used for this brand's page.</p>
+                    </div>
+
                     {/* SEO Metadata Sub-section inside Platform Add/Edit */}
                     <div className="sm:col-span-2 p-3.5 bg-slate-900/90 border border-purple-500/30 rounded-xl space-y-3 mt-1">
                       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -1181,6 +1304,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     Use <code className="text-amber-400 font-mono">&#123;&#123;country&#125;&#125;</code> as a dynamic placeholder for the user's detected country.
                   </span>
                 </div>
+                <div>
+                  <label className="block text-slate-300 font-extrabold mb-1">Sidebar Ad/Widget HTML</label>
+                  <textarea
+                    rows={4}
+                    value={localConfig.sidebarAdHtml || ''}
+                    onChange={e => setLocalConfig({ ...localConfig, sidebarAdHtml: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-sm focus:border-purple-500 outline-none"
+                    placeholder="<img src='...' /> or <script>...</script>"
+                  />
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    HTML injected into the right/left sidebar on Brand and Custom Pages. Useful for AdSense or direct banner ads.
+                  </span>
+                </div>
 
                 {/* Toggles */}
                 <div className="pt-4 border-t border-slate-800 space-y-3">
@@ -1370,22 +1506,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                   <span className="text-xs text-slate-400 font-bold block">Total Landing Visits</span>
-                  <span className="text-2xl font-black text-white mt-1 block">{stats.totalVisits}</span>
+                  <span className="text-2xl font-black text-white mt-1 block">{stats?.totalVisits || 0}</span>
                 </div>
 
                 <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                   <span className="text-xs text-slate-400 font-bold block">Total Offer Clicks</span>
-                  <span className="text-2xl font-black text-cyan-400 mt-1 block">{stats.totalClicks}</span>
+                  <span className="text-2xl font-black text-cyan-400 mt-1 block">{stats?.totalClicks || 0}</span>
                 </div>
 
                 <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                   <span className="text-xs text-slate-400 font-bold block">Promo Code Copies</span>
-                  <span className="text-2xl font-black text-amber-400 mt-1 block">{stats.totalPromoCopies}</span>
+                  <span className="text-2xl font-black text-amber-400 mt-1 block">{stats?.totalPromoCopies || 0}</span>
                 </div>
 
                 <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                   <span className="text-xs text-slate-400 font-bold block">Lucky Wheel Spins</span>
-                  <span className="text-2xl font-black text-purple-400 mt-1 block">{stats.totalWheelSpins}</span>
+                  <span className="text-2xl font-black text-purple-400 mt-1 block">{stats?.totalWheelSpins || 0}</span>
                 </div>
               </div>
 
@@ -1438,6 +1574,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
           {/* TAB 4: SUB-PARTNER APPLICATIONS */}
+
+          
+
           {activeTab === 'subpartners' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -1560,12 +1699,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
-          {activeTab === 'seo_health' && (
+
+
+
+          {activeTab === 'seo' && (
             <SeoHealthTab
               platforms={platforms}
               onSavePlatforms={onSavePlatforms}
             />
           )}
+
+
+
 
           {/* TAB 6: CUSTOM COUPON MANAGER */}
           {activeTab === 'coupons' && (
@@ -1580,6 +1725,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
+
+
+
           {/* TAB 7: FEEDBACK APPROVAL QUEUE */}
           {activeTab === 'feedback' && (
             <FeedbackApprovalTab
@@ -1593,6 +1741,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
+
+
+
           {/* TAB 8: TRACKING PIXEL MANAGER */}
           {activeTab === 'pixels' && (
             <TrackingPixelManagerTab
@@ -1603,6 +1754,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
+
+
+
           {/* TAB 9: AUTOMATED SITEMAP GENERATOR */}
           {activeTab === 'sitemap' && (
             <SitemapManagerTab
@@ -1610,6 +1764,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               customCoupons={config.customCoupons || []}
             />
           )}
+
+
+
 
           {/* TAB 10: FCM PUSH NOTIFICATION BROADCAST CENTER */}
           {activeTab === 'push' && (
@@ -1620,9 +1777,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
+
+
+
           {/* TAB 11: A/B TESTING DASHBOARD */}
           {activeTab === 'abtest' && (
             <AbTestDashboardTab
+              config={config}
+              onSaveConfig={onSaveConfig}
+            />
+          )}
+
+          {/* TAB: CUSTOM PAGES */}
+          {activeTab === 'pages' && (
+            <CustomPageManagerTab
+              pages={pagesList}
+              onSavePages={(newPages) => {
+                setPagesList(newPages);
+                if (onSaveCustomPages) onSaveCustomPages(newPages);
+              }}
+            />
+          )}
+
+          {/* TAB: AI ARTICLES */}
+
+          {activeTab === 'articles' && (
+            <AiArticleManagerTab
+              config={config}
+              platforms={platforms}
+              onSaveConfig={onSaveConfig}
+            />
+          )}
+
+          {/* TAB: FOOTER MANAGER */}
+          {activeTab === 'footer' && (
+            <FooterManagerTab
               config={config}
               onSaveConfig={onSaveConfig}
             />
@@ -1632,3 +1821,5 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     </div>
   );
 };
+
+

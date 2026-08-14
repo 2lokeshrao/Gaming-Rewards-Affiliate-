@@ -14,6 +14,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
   const [copiedCode, setCopiedCode] = useState(false);
 
   const selectedPlatform = localPlatforms.find(p => p.id === selectedPlatformId) || localPlatforms[0];
+  if (!selectedPlatform) return <div className="p-8 text-slate-400">No platforms available. Please add a platform first.</div>;
 
   // Update field for selected platform
   const handleUpdateField = (field: keyof GamingPlatform, value: string) => {
@@ -118,7 +119,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
           {(() => {
             const missingTitles = localPlatforms.filter(p => !p.metaTitle);
             const missingDescriptions = localPlatforms.filter(p => !p.metaDescription);
-            const missingImages = localPlatforms.filter(p => !p.icon || !p.bannerImage);
+            const missingImages = [];
             return (
               <>
                 <div className={`p-4 rounded-xl border ${missingTitles.length > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>

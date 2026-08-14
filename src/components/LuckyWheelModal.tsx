@@ -3,6 +3,9 @@ import { GamingPlatform, GlobalConfig } from '../types';
 import { Sparkles, Trophy, X, ExternalLink, RefreshCw, Timer } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '../i18n/LanguageContext';
+import { formatLocalizedBonus } from '../utils/currency';
+
 
 interface LuckyWheelProps {
   platforms: GamingPlatform[];
@@ -21,6 +24,7 @@ const WHEEL_SEGMENTS = [
 ];
 
 export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, onClaimPrize, onClose }) => {
+  const { language } = useLanguage();
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wonPrize, setWonPrize] = useState<{ label: string; code: string } | null>(null);
@@ -74,7 +78,7 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
           </h3>
           <p className="text-slate-300 text-xs sm:text-sm mt-1">
             {wonPrize
-              ? `You unlocked ${wonPrize.label}! Claim it on ${topPlatform?.name || 'top platform'} now.`
+              ? `You unlocked ${formatLocalizedBonus(wonPrize.label, language)}! Claim it on ${topPlatform?.name || 'top platform'} now.`
               : "Spin the lucky wheel now to claim guaranteed welcome deposit multipliers and free spins!"}
           </p>
         </div>
@@ -104,7 +108,7 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
                       }}
                     >
                       <span className="text-[10px] sm:text-[11px] font-black text-white text-center drop-shadow-sm uppercase leading-tight transform rotate-45 translate-x-2">
-                        {seg.label}
+                        {formatLocalizedBonus(seg.label, language)}
                       </span>
                     </div>
                   );
@@ -144,7 +148,7 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
                 <Trophy className="w-8 h-8 text-amber-400" />
               </div>
               <span className="text-xs uppercase font-bold text-amber-400 tracking-wider">YOUR EXCLUSIVE PRIZE UNLOCKED</span>
-              <div className="text-2xl font-black text-white my-1">{wonPrize.label}</div>
+              <div className="text-2xl font-black text-white my-1">{formatLocalizedBonus(wonPrize.label, language)}</div>
               <div className="mt-3 bg-slate-950 border border-slate-800 rounded-xl p-3 inline-block font-mono text-amber-300 font-bold text-base">
                 PROMO CODE: {config.featuredPromoCode || wonPrize.code}
               </div>

@@ -1,25 +1,25 @@
 import re
 
 with open('src/components/AdminPanel.tsx', 'r') as f:
-    content = f.read()
+    text = f.read()
 
-# Add Activity to lucide-react imports
-content = content.replace('import {\n  LayoutDashboard,', 'import {\n  LayoutDashboard,\n  Activity,')
+# Add useEffect for customPages
+use_effect_insertion = """  const [pagesList, setPagesList] = useState<CustomPage[]>(customPages || []);
 
-# Add truncateSeoText function before the return statement inside AdminPanel component
-# Let's just find where we use it and define it. Wait, the easiest is to define it at the top of the component or outside.
-helper = """
-// Helper to truncate text
-const truncateSeoText = (text: string | undefined, max: number) => {
-  if (!text) return '';
-  if (text.length <= max) return text;
-  const truncated = text.substring(0, max - 3).trim();
-  return `${truncated}...`;
-};
+  useEffect(() => {
+    if (customPages) {
+      setPagesList(customPages);
+    }
+  }, [customPages]);
+"""
+text = text.replace("  const [pagesList, setPagesList] = useState<CustomPage[]>(customPages || []);", use_effect_insertion)
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({"""
-
-content = content.replace("export const AdminPanel: React.FC<AdminPanelProps> = ({", helper)
+# Check if AI Article Tab and Footer Manager exist in tabs list, if not add them
+if "'articles'" not in text:
+    text = text.replace(
+        "| 'abtest' | 'pages'>('dashboard');",
+        "| 'abtest' | 'pages' | 'articles' | 'footer'>('dashboard');"
+    )
 
 with open('src/components/AdminPanel.tsx', 'w') as f:
-    f.write(content)
+    f.write(text)

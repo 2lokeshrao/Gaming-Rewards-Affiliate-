@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { GamingPlatform, UserGeo } from '../types';
-import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin } from 'lucide-react';
+import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import { AdContainer } from './AdContainer';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '../i18n/LanguageContext';
+import { formatLocalizedBonus } from '../utils/currency';
+
 
 interface OfferGridProps {
   platforms: GamingPlatform[];
@@ -24,6 +27,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
   onOpenQrModal,
   onOpenFeedbackModal
 }) => {
+  const { language, t } = useLanguage();
   const activePlatforms = platforms.filter(p => p.isActive);
   
   // Localized redirect logic: Prioritize specific offers based on UserGeo (e.g., India)
@@ -60,10 +64,10 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold uppercase mb-2">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>VERIFIED PROMO & PARTNER DIRECTORY</span>
+            <span>{t('grid.title')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            All Verified Gaming Offers & Sub-Partner Sign-Ups
+            {t('grid.subtitle')}
           </h2>
         </div>
         <div className="text-slate-400 text-xs font-medium bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
@@ -148,14 +152,19 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                     EXCLUSIVE PROMO OFFER
                   </span>
                   <span className="text-sm sm:text-base font-extrabold text-white">
-                    {p.bonusText}
+                    {formatLocalizedBonus(p.bonusText, language)}
                   </span>
                 </div>
                 <UrgencyTimer initialMinutes={19} initialSeconds={30} variant="card" />
               </div>
 
-              {/* Badges pills */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="text-[11px] bg-emerald-950/50 border border-emerald-800 text-emerald-400 px-2.5 py-1 rounded-md font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+                  ✓ {t('badge.verified')}
+                </span>
+                <span className="text-[11px] bg-indigo-950/50 border border-indigo-800 text-indigo-400 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
+                  ✓ {t('badge.fastWithdraw')}
+                </span>
                 {p.badges.map((badge, bIdx) => (
                   <span
                     key={bIdx}
@@ -165,14 +174,71 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                   </span>
                 ))}
               </div>
+
+              {/* Localized Payments based on Language / Geo */}
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1 uppercase tracking-wider">
+                  <Wallet className="w-3 h-3" /> {t('payment.local')}
+                </span>
+                <div className="flex gap-2 text-xs font-bold text-slate-300">
+                  {language === 'pt' && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">Pix</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">PicPay</span>
+                    </>
+                  )}
+                  {language === 'hi' && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">UPI</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Paytm</span>
+                      <span className="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-green-400">PhonePe</span>
+                    </>
+                  )}
+                  {language === 'ru' && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Bitcoin</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Mir</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Piastrix</span>
+                    </>
+                  )}
+                  {language === 'es' && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Bitcoin</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Mercado Pago</span>
+                      <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400">OXXO</span>
+                    </>
+                  )}
+                  {['en', 'fr', 'de', 'it', 'pl'].includes(language) && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Crypto</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Visa / MC</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Skrill</span>
+                    </>
+                  )}
+                  {['zh-CN', 'ja', 'ko', 'vi', 'th', 'id', 'ar', 'tr'].includes(language) && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">Tether (USDT)</span>
+                      <span className="px-2 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Bitcoin</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Bank Transfer</span>
+                    </>
+                  )}
+                  {language === 'unmatched_now' && (
+                    <>
+                      <span className="px-2 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Crypto</span>
+                      <span className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Visa / MC</span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Skrill</span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Promo Code, Claim CTA & Sub-Partner CTA */}
             <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end justify-center gap-2 lg:w-1/4">
               <div className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center justify-between gap-3 w-full">
                 <div>
-                  <span className="text-[9px] uppercase font-bold text-slate-400 block">PROMO CODE</span>
-                  <span className="font-mono font-black text-amber-400 text-xs tracking-wider">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">{t('card.promoCode')}</span>
+                  <span className="font-mono font-black text-amber-400 text-xs tracking-wider notranslate" translate="no">
                     {p.promoCode}
                   </span>
                 </div>
@@ -181,7 +247,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                   className="px-2 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0"
                 >
                   <Copy className="w-3 h-3" />
-                  <span>{copiedId === p.id ? 'COPIED! ✅' : 'COPY'}</span>
+                  <span>{copiedId === p.id ? t('card.copied') : t('card.copy')}</span>
                 </button>
               </div>
 
@@ -190,7 +256,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                   onClick={() => onClaimClick(p)}
                   className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs tracking-wide shadow-md shadow-amber-500/15 transition-all flex items-center justify-center gap-1.5 group cursor-pointer"
                 >
-                  <span>CLAIM BONUS</span>
+                  <span>{t('card.claimBonus')}</span>
                   <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 

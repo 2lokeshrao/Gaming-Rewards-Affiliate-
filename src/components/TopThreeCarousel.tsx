@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { GamingPlatform } from '../types';
-import { Crown, Star, CheckCircle2, Copy, ExternalLink, Flame, ShieldCheck, QrCode, MessageSquare } from 'lucide-react';
+import { Crown, Star, CheckCircle2, Copy, ExternalLink, Flame, ShieldCheck, QrCode, MessageSquare, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '../i18n/LanguageContext';
+import { formatLocalizedBonus } from '../utils/currency';
+
 
 interface TopThreeProps {
   platforms: GamingPlatform[];
@@ -19,6 +22,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
   onOpenQrModal,
   onOpenFeedbackModal
 }) => {
+  const { language, t } = useLanguage();
   const topPlatforms = platforms
     .filter(p => p.isActive && p.isFeatured)
     .sort((a, b) => (a.featuredRank || 99) - (b.featuredRank || 99))
@@ -46,13 +50,13 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
       <div className="flex flex-col items-center mb-10 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-widest mb-2">
           <Crown className="w-4 h-4 text-amber-400" />
-          <span>TOP 3 GUARANTEED WINNERS</span>
+          <span>{t('carousel.top3')}</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Highest Converting & Fastest Payout Gaming Sites
+          {t('carousel.title')}
         </h2>
         <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl">
-          Tested and verified daily for instant withdrawal speed, maximum RTP slots, and highest welcome bonus multipliers.
+          {t('carousel.subtitle')}
         </p>
       </div>
 
@@ -116,7 +120,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">Global Rating</span>
+                    <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">{t('card.globalRating')}</span>
                     <span className="text-lg font-black text-emerald-400">{p.averageUserRating?.toFixed(1) || p.starRating}.0<span className="text-xs text-emerald-600">/5</span></span>
                   </div>
                 </div>
@@ -125,23 +129,83 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                 <div className="bg-gradient-to-br from-purple-950/80 to-slate-950 border border-purple-500/40 rounded-xl p-3.5 my-4 text-center">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-bold text-purple-300 uppercase tracking-widest block">
-                      EXCLUSIVE WELCOME OFFER
+                      {t('card.exclusiveOffer')}
                     </span>
                     <UrgencyTimer initialMinutes={12} initialSeconds={45} variant="compact" />
                   </div>
                   <div className="text-base sm:text-lg font-black text-amber-300 leading-tight">
-                    {p.bonusText}
+                    {formatLocalizedBonus(p.bonusText, language)}
                   </div>
                 </div>
 
                 {/* Badges list */}
-                <div className="space-y-1.5 mb-6">
+                <div className="space-y-1.5 mb-4">
+                  <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                    <span>{t('badge.verified')}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-indigo-400 font-bold">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{t('badge.fastWithdraw')}</span>
+                  </div>
                   {p.badges.map((b, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs text-slate-300 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400/50 shrink-0" />
                       <span>{b}</span>
                     </div>
                   ))}
+                </div>
+
+                {/* Localized Payments based on Language / Geo */}
+                <div className="mb-6 flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1 uppercase tracking-wider">
+                    <Wallet className="w-3 h-3" /> {t('payment.local')}
+                  </span>
+                  <div className="flex gap-2 text-[10px] font-bold text-slate-300">
+                    {language === 'pt' && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">Pix</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">PicPay</span>
+                      </>
+                    )}
+                    {language === 'hi' && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">UPI</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Paytm</span>
+                      </>
+                    )}
+                    {language === 'ru' && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Bitcoin</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Mir</span>
+                      </>
+                    )}
+                    {language === 'es' && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Mercado Pago</span>
+                        <span className="px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400">OXXO</span>
+                      </>
+                    )}
+                    {['en', 'fr', 'de', 'it', 'pl'].includes(language) && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Crypto</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Visa / MC</span>
+                      </>
+                    )}
+                    {['zh-CN', 'ja', 'ko', 'vi', 'th', 'id', 'ar', 'tr'].includes(language) && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#32BCAD]/10 border border-[#32BCAD]/30 text-[#32BCAD]">Tether (USDT)</span>
+                        <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Bitcoin</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Bank Transfer</span>
+                      </>
+                    )}
+                    {language === 'unmatched_now' && (
+                      <>
+                        <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30 text-[#F7931A]">Crypto</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">Visa / MC</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -149,8 +213,8 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                 {/* Promo Code Box */}
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 mb-4 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">PROMO CODE</span>
-                    <span className="font-mono font-black text-amber-400 text-sm tracking-wider">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('card.promoCode')}</span>
+                    <span className="font-mono font-black text-amber-400 text-sm tracking-wider notranslate" translate="no">
                       {p.promoCode}
                     </span>
                   </div>
@@ -159,7 +223,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                     className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    <span>{copiedId === p.id ? 'COPIED! ✅' : 'COPY'}</span>
+                    <span>{copiedId === p.id ? t('card.copied') : t('card.copy')}</span>
                   </button>
                 </div>
 
@@ -169,7 +233,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                     onClick={() => onClaimClick(p)}
                     className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5 group cursor-pointer"
                   >
-                    <span>CLAIM BONUS</span>
+                    <span>{t('card.claimBonus')}</span>
                     <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </button>
 

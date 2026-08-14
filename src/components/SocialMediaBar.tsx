@@ -1,6 +1,7 @@
 import React from 'react';
 import { GlobalConfig } from '../types';
 import { Send, Instagram, Video, MessageSquare, Youtube, ExternalLink } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface SocialMediaBarProps {
   config: GlobalConfig;
@@ -8,7 +9,18 @@ interface SocialMediaBarProps {
 }
 
 export const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ config, variant = 'header' }) => {
+  const { language } = useLanguage();
   const hasSocials = config.telegramUrl || config.instagramUrl || config.tiktokUrl || config.whatsappGroupUrl || config.youtubeUrl;
+
+  // Build Geo-Specific Social links dynamically
+  const getTelegramUrl = () => {
+    let base = config.telegramUrl || 'https://t.me/bonuspromocode';
+    if (language === 'hi') return base + '_in';
+    if (language === 'pt') return base + '_br';
+    if (language === 'es') return base + '_latam';
+    if (language === 'ru') return base + '_cis';
+    return base;
+  };
 
   if (!hasSocials) return null;
 
@@ -28,13 +40,13 @@ export const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ config, variant 
           <div className="flex items-center gap-2 flex-wrap justify-center lg:justify-end max-w-full py-1">
             {config.telegramUrl && (
               <a
-                href={config.telegramUrl}
+                href={getTelegramUrl()}
                 target="_blank"
                 rel="noreferrer"
                 className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-[11px] sm:text-xs font-extrabold flex items-center gap-1.5 transition-all hover:scale-105 shrink-0 whitespace-nowrap"
               >
                 <Send className="w-3.5 h-3.5 text-sky-400" />
-                <span>Telegram Channel</span>
+                <span>Telegram Channel {language.toUpperCase()}</span>
               </a>
             )}
 
@@ -95,10 +107,10 @@ export const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ config, variant 
     <div className="flex items-center justify-center gap-2 flex-wrap max-w-full">
       {config.telegramUrl && (
         <a
-          href={config.telegramUrl}
+          href={getTelegramUrl()}
           target="_blank"
           rel="noreferrer"
-          title="Official Telegram Channel"
+          title={`Official Telegram Channel ${language.toUpperCase()}`}
           className="p-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 transition-all hover:scale-105"
         >
           <Send className="w-4 h-4" />

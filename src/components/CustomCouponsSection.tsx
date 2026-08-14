@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { CustomCoupon } from '../types';
 import { Ticket, Copy, Check, Sparkles, ExternalLink, Flame, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
+import { formatLocalizedBonus } from '../utils/currency';
 
 interface CustomCouponsSectionProps {
   coupons: CustomCoupon[];
@@ -8,6 +10,7 @@ interface CustomCouponsSectionProps {
 }
 
 export const CustomCouponsSection: React.FC<CustomCouponsSectionProps> = ({ coupons, onClaimCoupon }) => {
+  const { language } = useLanguage();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const activeCoupons = coupons.filter(c => c.isActive);
@@ -75,10 +78,10 @@ export const CustomCouponsSection: React.FC<CustomCouponsSectionProps> = ({ coup
                 {/* Title & Description */}
                 <div>
                   <h3 className="text-base font-black text-white group-hover:text-purple-300 transition-colors leading-tight">
-                    {coupon.title}
+                    {formatLocalizedBonus(coupon.title, language)}
                   </h3>
                   <p className="text-slate-300 text-xs mt-1.5 leading-relaxed line-clamp-2">
-                    {coupon.description}
+                    {formatLocalizedBonus(coupon.description, language)}
                   </p>
                 </div>
               </div>

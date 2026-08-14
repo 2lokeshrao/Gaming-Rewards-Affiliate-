@@ -835,8 +835,7 @@ const autoblogInterval = setInterval(async () => {
   }
   
 startServer();
-
+}
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Affiliate Hub App listening on port ${PORT}`);
   });
-}

@@ -314,7 +314,14 @@ app.post('/api/check-email', (req, res) => {
 // API: S2S Postback (Webhook) Route for Affiliate Networks
 app.get('/api/postback/:platform', async (req, res) => {
   const { platform } = req.params;
-  const { click_id, event, player, sum, currency, ...otherParams } = req.query;
+  const { click_id, event, player, sum, currency, token, ...otherParams } = req.query;
+
+  // STRICT SECURITY: Verify Postback Token
+  const EXPECTED_TOKEN = process.env.POSTBACK_SECRET_TOKEN;
+  if (!EXPECTED_TOKEN || token !== EXPECTED_TOKEN) {
+    console.warn(`[SECURITY ALERT] Fake postback attempt for ${platform} from IP: ${req.ip}`);
+    return res.status(403).json({ error: 'Unauthorized: Invalid Postback Token' });
+  }
 
   const postbackData = {
     platform,
@@ -483,262 +490,47 @@ app.post('/api/track', (req, res) => {
   res.json({ success: true });
 });
 
-// CLOAKED LINK REDIRECTION ROUTE (/go/:slug)
+// CLEAN LINK REDIRECTION ROUTE (/go/:slug)
 app.get('/go/:slug', (req, res) => {
   const { slug } = req.params;
-  const userAgent = req.headers['user-agent'] || '';
-  const isBot = BOT_USER_AGENTS.test(userAgent);
-  
-  // Extract tracking parameters from query string
+
+  // 1. Extract tracking parameters from query string
   const clickId = req.query.click_id || req.query.utm_source || '';
   const sub1 = req.query.sub1 || '';
   const sub2 = req.query.sub2 || '';
 
+  // 2. Find the requested platform
   const platform = statePlatforms.find(p => p.slug === slug || p.id === slug);
 
   if (!platform) {
-    return res.redirect('/');
+    return res.redirect('/'); //
   }
 
-  // Build the dynamic Affiliate URL with tracking parameters
-  let targetUrl = platform.rawAffiliateUrl;
+  // 3. Smart Geo-Targeting: Identify user location and pick the correct link
+  const geo = getGeoFromRequest(req);
+  let targetUrl = platform.rawAffiliateUrl; // Default global fallback link
+  
+  if (platform.geoLinks && platform.geoLinks[geo.countryCode]) {
+    targetUrl = platform.geoLinks[geo.countryCode]; // Country-specific affiliate link
+  }
   if (clickId || sub1 || sub2) {
-    const urlObj = new URL(targetUrl);
-    if (clickId) urlObj.searchParams.set('click_id', clickId as string);
-    if (sub1) urlObj.searchParams.set('sub1', sub1 as string);
-    if (sub2) urlObj.searchParams.set('sub2', sub2 as string);
-    targetUrl = urlObj.toString();
+    try {
+      const urlObj = new URL(targetUrl);
+      if (clickId) urlObj.searchParams.set('click_id', clickId as string);
+      if (sub1) urlObj.searchParams.set('sub1', sub1 as string);
+      if (sub2) urlObj.searchParams.set('sub2', sub2 as string);
+      targetUrl = urlObj.toString();
+    } catch (e) {
+      
+    }
   }
 
-  // Record click count
+  // 4. Record click count for your Analytics Dashboard
   platform.clicksCount = (platform.clicksCount || 0) + 1;
   stateStats.totalClicks += 1;
 
-  // Tracking Pixels Helper
-  const fbPixelId = platform.trackingPixels?.facebookPixelId || stateConfig.globalTrackingPixels?.facebookPixelId;
-  const gaPixelId = platform.trackingPixels?.googleAnalyticsId || stateConfig.globalTrackingPixels?.googleAnalyticsId;
-  const customScript = stateConfig.globalTrackingPixels?.customHeaderScript || '';
-
-  const pixelScriptHeader = `
-    ${fbPixelId ? `
-      <script>
-        !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-        n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-        document,'script','https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '${fbPixelId}');
-        fbq('track', 'Lead');
-      </script>
-    ` : ''}
-    ${gaPixelId ? `
-      <script async src="https://www.googletagmanager.com/gtag/js?id=${gaPixelId}"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${gaPixelId}');
-        gtag('event', 'conversion', {'send_to': '${gaPixelId}'});
-      </script>
-    ` : ''}
-    ${customScript ? customScript : ''}
-  `;
-
-  // CLOAKING LOGIC: If an Ad Bot / Crawler is detected and cloaking is ON -> Serve safe educational review page with FAQ Schema
-  if (isBot && stateConfig.enableBotCloaking) {
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": `Is ${platform.name} legit and safe to play?`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": `Yes, ${platform.name} is an officially licensed and verified platform featuring SSL security encryption and fair RNG gaming certifications.`
-          }
-        },
-        {
-          "@type": "Question",
-          "name": `What is the verified promo code for ${platform.name}?`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": `The verified official promo code for ${platform.name} is ${platform.promoCode || 'MAXBOOST500'}, granting 500% welcome deposit bonus + 200 free spins.`
-          }
-        }
-      ]
-    };
-
-    return res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>${platform.name} - Official Review, Legit Status & Promo Code 2026</title>
-        <script type="application/ld+json">${JSON.stringify(faqSchema)}</script>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
-          h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-          .badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-          .card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0; }
-          .faq-item { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; }
-        </style>
-      </head>
-      <body>
-        <h1>${platform.name} Overview, Legit Status & Compliance</h1>
-        <p><span class="badge">Verified Official Brand Review</span></p>
-        <div class="card">
-          <h2>About ${platform.name}</h2>
-          <p>This is an official informational summary page regarding ${platform.name}. It provides software details, security compliance credentials, and customer assistance channels.</p>
-          <p><strong>Is ${platform.name} Legit?</strong> Yes, ${platform.name} operates with valid international gaming certification, instant local withdrawals (UPI, Pix, Crypto), and 24/7 support.</p>
-          <p><strong>Official Promo Code:</strong> <code>${platform.promoCode || 'MAXBOOST500'}</code></p>
-          <p><strong>Rating:</strong> ${platform.rating} / 10</p>
-          <p><strong>Features:</strong> ${platform.badges.join(', ')}</p>
-        </div>
-
-        <div class="card">
-          <h3>Frequently Asked Questions (FAQ)</h3>
-          <div class="faq-item">
-            <h4>Is ${platform.name} legit and safe?</h4>
-            <p>Yes, ${platform.name} is fully verified and licensed, ensuring fair gameplay and secure encrypted transactions.</p>
-          </div>
-          <div class="faq-item">
-            <h4>How to activate the 500% deposit bonus on ${platform.name}?</h4>
-            <p>Register with promo code <code>${platform.promoCode || 'MAXBOOST500'}</code> during sign-up to claim your welcome bonus.</p>
-          </div>
-        </div>
-
-        <footer>
-          <p><small>&copy; 2026 Gaming Reviews & Regulatory Compliance Portal. 18+ Responsible Gaming.</small></p>
-        </footer>
-      </body>
-      </html>
-    `);
-  }
-
-  // Real user -> Serve High-Converting 10-Minute Registration Urgency Interstitial Page then auto-redirect
-  return res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Activating 500% Bonus - ${platform.name}</title>
-      ${pixelScriptHeader}
-      <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-slate-950 text-white font-sans min-h-screen flex items-center justify-center p-4">
-      <div id="cardBox" class="max-w-md w-full bg-slate-900 border-2 border-emerald-500/70 rounded-3xl p-6 shadow-2xl text-center space-y-5 relative overflow-hidden transition-all duration-500">
-        
-        <!-- Glow accent -->
-        <div id="glowAccent" class="absolute -top-12 -left-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none transition-all duration-500"></div>
-        <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-        <!-- Header badge -->
-        <div id="timerBadge" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/50 text-emerald-300 text-xs font-black uppercase tracking-wider transition-all">
-          <span>🟢 10-MINUTE REGISTRATION TIMER ACTIVATED</span>
-        </div>
-
-        <!-- Logo & Title -->
-        <div class="flex flex-col items-center gap-2">
-          <img src="${platform.logoUrl}" alt="${platform.name}" class="w-16 h-16 rounded-2xl border-2 border-amber-500/60 shadow-lg object-cover" />
-          <h1 class="text-2xl font-black text-white">${platform.name} Welcome Bonus</h1>
-          <p class="text-xs text-slate-300">Your 500% Deposit Bonus & 200 Free Spins are reserved for the next 10 minutes.</p>
-        </div>
-
-        <!-- 10 Minute Urgency Timer Box -->
-        <div id="timerBox" class="bg-slate-950 border-2 border-emerald-500/50 rounded-2xl p-4 space-y-1 transition-all duration-500">
-          <span id="timerLabel" class="text-[10px] uppercase font-black text-emerald-400 tracking-widest block">RESERVED BONUS COUNTDOWN</span>
-          <div id="timer" class="font-mono text-4xl font-black text-emerald-300 tracking-wider">10:00</div>
-          <span className="text-[11px] text-slate-400 block">Complete registration before timer expires to guarantee bonus</span>
-        </div>
-
-        <!-- Promo Code Box -->
-        <div class="bg-purple-950/60 border border-purple-500/40 rounded-xl p-3 flex items-center justify-between">
-          <div class="text-left">
-            <span class="text-[9px] uppercase font-bold text-purple-300 block">REQUIRED PROMO CODE</span>
-            <span class="font-mono font-black text-amber-300 text-base tracking-wider">${platform.promoCode || 'MAXBOOST500'}</span>
-          </div>
-          <button onclick="copyCode()" id="copyBtn" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition-colors">
-            COPY CODE
-          </button>
-        </div>
-
-        <!-- CTA Direct Button -->
-        <a id="redirectLink" href="${targetUrl}" class="block w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm uppercase tracking-wide shadow-xl shadow-amber-500/20 transform active:scale-95 transition-all">
-          PROCEED TO OFFICIAL REGISTRATION NOW (<span id="count">2</span>s)
-        </a>
-
-        <p class="text-[11px] text-slate-500">18+ Only • Safe Encrypted Redirect to Official Registration Page</p>
-      </div>
-
-      <script>
-        // Copy Code Functionality
-        function copyCode() {
-          navigator.clipboard.writeText('${platform.promoCode || 'MAXBOOST500'}');
-          const btn = document.getElementById('copyBtn');
-          btn.innerText = 'COPIED! ✅';
-          btn.classList.add('bg-emerald-400', 'text-slate-950');
-        }
-
-        // 10 Minute Urgency Timer Counter with Dynamic Visual Color Shift & Pulse Animation
-        let totalSeconds = 600;
-        const timerElem = document.getElementById('timer');
-        const timerBox = document.getElementById('timerBox');
-        const timerLabel = document.getElementById('timerLabel');
-        const cardBox = document.getElementById('cardBox');
-        const timerBadge = document.getElementById('timerBadge');
-
-        setInterval(() => {
-          if (totalSeconds > 0) {
-            totalSeconds--;
-            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            const s = (totalSeconds % 60).toString().padStart(2, '0');
-            timerElem.innerText = m + ':' + s;
-
-            // Phase 1: 10m to 6m (> 360s) -> Emerald Green
-            if (totalSeconds > 360) {
-              // Default Green
-            } 
-            // Phase 2: 6m to 3m (180s - 360s) -> Amber Yellow Pulse
-            else if (totalSeconds <= 360 && totalSeconds > 180) {
-              cardBox.className = "max-w-md w-full bg-slate-900 border-2 border-amber-500/80 rounded-3xl p-6 shadow-2xl text-center space-y-5 relative overflow-hidden transition-all duration-500";
-              timerBox.className = "bg-amber-950/80 border-2 border-amber-500 rounded-2xl p-4 space-y-1 animate-pulse transition-all duration-500";
-              timerElem.className = "font-mono text-4xl font-black text-amber-300 tracking-wider";
-              timerLabel.className = "text-[10px] uppercase font-black text-amber-400 tracking-widest block";
-              timerLabel.innerText = "⚠️ OFFER EXPIRING SOON - REGISTER NOW";
-              timerBadge.className = "inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-950 border border-amber-500/60 text-amber-300 text-xs font-black uppercase tracking-wider";
-              timerBadge.innerText = "⚠️ OFFER EXPIRING SOON";
-            } 
-            // Phase 3: < 3m (0s - 180s) -> Crimson Red Urgent Rapid Pulse / Bounce
-            else if (totalSeconds <= 180) {
-              cardBox.className = "max-w-md w-full bg-slate-900 border-4 border-red-500 rounded-3xl p-6 shadow-2xl shadow-red-900/50 text-center space-y-5 relative overflow-hidden transition-all duration-500";
-              timerBox.className = "bg-red-950 border-4 border-red-500 rounded-2xl p-4 space-y-1 animate-bounce transition-all duration-500";
-              timerElem.className = "font-mono text-4xl font-black text-red-400 tracking-wider";
-              timerLabel.className = "text-[10px] uppercase font-black text-red-300 tracking-widest block animate-pulse";
-              timerLabel.innerText = "🚨 CRITICAL WARNING - EXPIRING IN MINUTES!";
-              timerBadge.className = "inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-red-950 border border-red-500 text-red-400 text-xs font-black uppercase tracking-wider animate-pulse";
-              timerBadge.innerText = "🚨 CRITICAL WARNING";
-            }
-          }
-        }, 1000);
-
-        // Auto Redirect Countdown
-        let redirectSeconds = 2;
-        const countElem = document.getElementById('count');
-        const interval = setInterval(() => {
-          redirectSeconds--;
-          if (countElem) countElem.innerText = redirectSeconds;
-          if (redirectSeconds <= 0) {
-            clearInterval(interval);
-            window.location.href = "${targetUrl}";
-          }
-        }, 1000);
-      </script>
-    </body>
-    </html>
-  `);
+  // 5. Clean, transparent redirect without deceptive cloaking
+  return res.redirect(targetUrl);
 });
 
 // SEO Helper function to dynamically inject sitemap.xml route
@@ -1019,7 +811,28 @@ const autoblogInterval = setInterval(async () => {
     console.error('[Auto-Blogger] Error generating article:', err);
   }
 }, (stateConfig.autoBlogSettings?.intervalHours || 24) * 60 * 60 * 1000); // Default to checking daily, but interval updates when hours change.
+// ----------------------------------------------------------------------
+  // FIRESTORE DATABASE SYNC ON BOOT
+  // ----------------------------------------------------------------------
+  if (firestoreDb) {
+    try {
+      console.log("Syncing persistent data from Firestore...");
+      
+      const configDoc = await firestoreDb.collection('system').doc('globalConfig').get();
+      if (configDoc.exists) {
+        stateConfig = { ...stateConfig, ...configDoc.data() };
+      }
 
+      const platformsSnapshot = await firestoreDb.collection('platforms').get();
+      if (!platformsSnapshot.empty) {
+        statePlatforms = platformsSnapshot.docs.map(doc => doc.data() as GamingPlatform);
+      }
+      
+      console.log("✅ Database synced successfully.");
+    } catch (err) {
+      console.error("❌ Firestore sync failed, falling back to local memory:", err);
+    }
+  }
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Affiliate Hub App listening on port ${PORT}`);
   });

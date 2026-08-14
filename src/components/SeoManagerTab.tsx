@@ -103,7 +103,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
     <div className="space-y-6">
       {/* Toast Notification */}
       {savedToast && (
-        <div className="fixed top-20 right-6 z-50 bg-emerald-500 text-slate-950 font-black px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-300 animate-bounce">
+        <div className="fixed top-20 right-6 z-[200] bg-emerald-500 text-slate-950 font-black px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-300 animate-bounce">
           <CheckCircle2 className="w-5 h-5" />
           <span>SEO Metadata successfully saved and published!</span>
         </div>

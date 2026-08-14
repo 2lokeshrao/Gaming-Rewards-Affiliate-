@@ -57,7 +57,7 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-lg bg-slate-900 border border-purple-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-purple-950/80 text-center overflow-hidden">
         {/* Close Button */}
         <button

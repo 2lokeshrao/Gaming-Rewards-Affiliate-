@@ -246,7 +246,7 @@ export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config
 
       {/* Editor Modal */}
       {editingArticle && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
             <h3 className="text-xl font-bold text-white mb-4">Edit Article</h3>
             

@@ -10,8 +10,13 @@ import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerAppli
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-affiliate-key-2026';
-const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || '@dmin123';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
+
+if (!JWT_SECRET || !ADMIN_PASSCODE) {
+  console.error("FATAL ERROR: JWT_SECRET or ADMIN_PASSCODE is missing in environment variables. Server shutting down to prevent unauthorized access.");
+  process.exit(1);
+}
 
 app.use(express.json());
 
@@ -427,7 +432,7 @@ app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
 
 // API: Save Config (Protected)
 
-app.post('/api/admin/custom-pages', express.json(), (req, res) => {
+app.post('/api/admin/custom-pages', verifyJwtToken, express.json(), (req, res) => {
   const { pages } = req.body;
   if (Array.isArray(pages)) {
     stateCustomPages = pages;
@@ -882,7 +887,7 @@ async function startServer() {
   }
 
   
-app.post('/api/generate-article', async (req, res) => {
+app.post('/api/generate-article', verifyJwtToken, adminLoginRateLimiter, async (req, res) => {
   try {
     const { topic, category, platformName, platformId } = req.body;
     

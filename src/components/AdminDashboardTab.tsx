@@ -372,15 +372,16 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                     {/* Platform Name & Logo */}
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
-                        <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }}
-                          src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
-                          alt={panel.platformName}
-                          width="32"
-                          height="32"
-                          
-                          decoding="async"
-                          className="w-8 h-8 rounded-lg object-cover border border-slate-700 bg-slate-950"
-                        />
+                        <img 
+              loading="lazy" 
+              decoding="async" 
+              width="32"
+              height="32"
+              src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
+              alt={panel.platformName}
+              className="w-8 h-8 rounded-lg object-cover border border-slate-700 bg-slate-950"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }}
+            />
                         <div>
                           <span className="font-extrabold text-white text-sm block">{panel.platformName}</span>
                           <span className="text-[10px] text-slate-500 font-mono">ID: {panel.affiliateId || 'NOT_SET'}</span>

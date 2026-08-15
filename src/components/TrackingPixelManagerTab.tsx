@@ -174,7 +174,7 @@ export const TrackingPixelManagerTab: React.FC<TrackingPixelManagerTabProps> = (
             return (
               <div key={platform.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2.5">
-                  <img loading="lazy" src={platform.logoUrl} alt={platform.name} className="w-7 h-7 rounded-lg object-cover" />
+                  <img width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }} loading="lazy" src={platform.logoUrl} alt={platform.name} className="w-7 h-7 rounded-lg object-cover" />
                   <span className="font-extrabold text-white text-sm">{platform.name}</span>
                 </div>
 

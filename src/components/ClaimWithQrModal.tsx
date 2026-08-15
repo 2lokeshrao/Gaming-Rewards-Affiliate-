@@ -53,12 +53,11 @@ export const ClaimWithQrModal: React.FC<ClaimWithQrModalProps> = ({
           </div>
 
           <div className="flex items-center justify-center gap-3 pt-2">
-            <img loading="lazy"
+            <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }}
               src={platform.logoUrl}
               alt={platform.name}
               className="w-10 h-10 rounded-xl object-cover border border-slate-700 bg-slate-950 shadow-md"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://picsum.photos/100/100?random=1';
               }}
             />
             <h2 className="text-2xl font-black text-white tracking-tight">{platform.name}</h2>

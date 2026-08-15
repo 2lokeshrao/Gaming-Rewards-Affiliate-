@@ -114,7 +114,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
         {/* Hero Card Content */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
-            <img loading="lazy"
+            <img width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }} loading="lazy"
               src={topPlatform.logoUrl}
               alt={topPlatform.name}
               className="h-12 object-contain"

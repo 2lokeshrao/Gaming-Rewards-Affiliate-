@@ -21,6 +21,10 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
         
         decoding="async"
         onLoad={() => setIsLoaded(true)}
+        onError={(e) => {
+          e.currentTarget.src = "/logos/placeholder.png";
+          setIsLoaded(true);
+        }}
         className={`w-full h-full object-cover transition-opacity duration-500 rounded-[inherit] ${
           isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
         } ${className.includes('border') ? 'border border-slate-700' : ''}`}

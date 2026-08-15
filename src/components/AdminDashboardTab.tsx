@@ -372,7 +372,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                     {/* Platform Name & Logo */}
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
-                        <img loading="lazy"
+                        <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }}
                           src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
                           alt={panel.platformName}
                           width="32"

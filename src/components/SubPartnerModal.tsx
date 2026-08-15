@@ -135,7 +135,7 @@ export const SubPartnerModal: React.FC<SubPartnerModalProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                     }`}
                   >
-                    <img loading="lazy" src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded-md object-cover" />
+                    <img width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }} loading="lazy" src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded-md object-cover" />
                     <span className="font-extrabold text-xs truncate">{p.name}</span>
                   </button>
                 ))}

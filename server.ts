@@ -990,14 +990,22 @@ const autoblogInterval = setInterval(async () => {
     const defaultCategories = ['Gaming', 'Crypto', 'Finance', 'Loans', 'Virtual Cards'];
     const cats = categories && categories.length > 0 ? categories : defaultCategories;
     const category = cats[Math.floor(Math.random() * cats.length)];
-    const defaultTopics = ['Best crypto wallets for gaming withdrawals', 'Top virtual cards for instant cashout', 'Best instant loan apps', 'Gaming platform reviews and promo codes'];
+    const defaultTopics = ['Best crypto wallets for gaming withdrawals', '1Win vs Mostbet: Which is better?', 'Best Casino Promo Codes 2026', 'No KYC Crypto Casinos', 'Instant Withdrawal Casinos in India', 'Stake vs BC.Game Comparison', 'Top 5 Casino Welcome Bonuses', 'How to claim 1Win 500% Bonus'];
     const tops = topics && topics.length > 0 ? topics : defaultTopics;
     const topic = tops[Math.floor(Math.random() * tops.length)];
 
     console.log(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
     
-    const prompt = `You are an expert SEO copywriter. Write a comprehensive, highly engaging article about: "${topic}".
+    const prompt = `You are an expert iGaming SEO copywriter. Write a comprehensive, highly engaging, and highly converting article (800-1500 words) about: "${topic}".
     Category: ${category}.
+    Make sure to include sections for:
+    - Introduction and target audience
+    - Detailed breakdown (Pros/Cons, Comparisons if applicable)
+    - Payment methods and withdrawal speeds
+    - Step-by-step guide on how to claim promo codes (mention code MAXBOOST500)
+    - Responsible gambling disclaimer at the end
+    
+    Use rich Markdown formatting (H2, H3, bullet points, bold text).
     Return ONLY valid JSON in this exact format:
     {
       "title": "Catchy SEO Title",

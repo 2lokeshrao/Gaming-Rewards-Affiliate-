@@ -1,23 +1,15 @@
 import re
 
-with open('src/components/OfferGrid.tsx', 'r') as f:
+with open('src/components/OfferGrid.tsx', 'r', encoding='utf-8') as f:
     content = f.read()
 
-content = content.replace("import confetti from 'canvas-confetti';\n", "")
+# Add "Verified today" badge inside the mapping
+pattern = r'(<div className="flex items-start justify-between mb-4">)'
+replacement = r"""<div className="text-[10px] uppercase tracking-widest font-bold text-emerald-400 mb-3 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Verified {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}
+              </div>\n              \1"""
 
-# We need to make handleCopyCode async in OfferGrid.tsx
-# The original function signature:
-# const handleCopyCode = (p: GamingPlatform, e: React.MouseEvent) => {
-pattern1 = r'const handleCopyCode = \((.*?)\) => \{'
-replacement1 = r'const handleCopyCode = async (\1) => {'
+content = re.sub(pattern, replacement, content)
 
-content = re.sub(pattern1, replacement1, content)
-
-# Replace confetti call
-pattern2 = r'(confetti\(\{[\s\S]*?\}\);)'
-replacement2 = r'const confetti = (await import("canvas-confetti")).default;\n    \1'
-
-content = re.sub(pattern2, replacement2, content)
-
-with open('src/components/OfferGrid.tsx', 'w') as f:
+with open('src/components/OfferGrid.tsx', 'w', encoding='utf-8') as f:
     f.write(content)

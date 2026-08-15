@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  priority?: boolean;
   src: string;
   alt: string;
 }
 
-export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', ...props }) => {
+export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', priority = false, ...props }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
@@ -15,7 +16,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
         <div className="absolute inset-0 bg-slate-800  border border-slate-700/50 rounded-[inherit]" />
       )}
       
-      <img loading="lazy"
+      <img loading={priority ? "eager" : "lazy"}
         src={src}
         alt={alt}
         

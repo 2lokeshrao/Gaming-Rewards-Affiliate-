@@ -1,17 +1,15 @@
 import re
 
-with open('src/components/TopThreeCarousel.tsx', 'r') as f:
+with open('src/components/TopThreeCarousel.tsx', 'r', encoding='utf-8') as f:
     content = f.read()
 
-content = content.replace("import confetti from 'canvas-confetti';\n", "")
+pattern = r'(<div className="absolute top-4 left-4 z-10 flex gap-2">)'
+replacement = r"""\1
+                <div className="bg-emerald-500/90 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow flex items-center gap-1 backdrop-blur-sm">
+                  <CheckCircle2 className="w-3 h-3" /> Verified {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}
+                </div>"""
 
-pattern1 = r'const handleCopy = \((.*?)\) => \{'
-replacement1 = r'const handleCopy = async (\1) => {'
-content = re.sub(pattern1, replacement1, content)
+content = re.sub(pattern, replacement, content)
 
-pattern2 = r'(confetti\(\{[\s\S]*?\}\);)'
-replacement2 = r'const confetti = (await import("canvas-confetti")).default;\n    \1'
-content = re.sub(pattern2, replacement2, content)
-
-with open('src/components/TopThreeCarousel.tsx', 'w') as f:
+with open('src/components/TopThreeCarousel.tsx', 'w', encoding='utf-8') as f:
     f.write(content)

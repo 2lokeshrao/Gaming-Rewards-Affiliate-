@@ -4,6 +4,7 @@ import Markdown from 'react-markdown';
 import { GamingPlatform, UserGeo, CustomPage, GlobalConfig } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getGeoContext, getSeoTemplates } from '../utils/seoTemplates';
+import { injectSeoTags } from '../utils/seo';
 import { formatLocalizedBonus } from '../utils/currency';
 import { CheckCircle, ArrowRight, Home, ChevronRight } from 'lucide-react';
 import { WalletReferrals } from './WalletReferrals';
@@ -37,15 +38,13 @@ export const BrandArticlePage: React.FC<{
 
   useEffect(() => {
     if (!platform) return;
-    document.title = `${platform.name} Promo Code & Review in ${geoContext.country} | BonusPromoCode`;
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', content.promoContent.replace(/<[^>]+>/g, '').substring(0, 150) + '...');
-  }, [platform, geoContext.country, content]);
+    const title = `${platform.name} Promo Code 2026 - ${platform.bonusText || '500% Bonus'} | BonusPromoCode`;
+    const desc = `Claim the best ${platform.name} promo code for ${geoContext.country}. Get ${localizedBonus} instantly. Read our complete review, payment methods, and withdrawal speed.`;
+    const canonical = `https://bonuspromocode.in/brands/${slug}`;
+    const ogImage = typeof platform.logoUrl === 'string' && platform.logoUrl.startsWith('data:') ? '' : `https://bonuspromocode.in${platform.logoUrl}`;
+    
+    injectSeoTags(title, desc, canonical, ogImage);
+  }, [platform, geoContext.country, localizedBonus, slug]);
 
   const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();

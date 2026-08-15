@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, WinnerTickerItem, UserGeo, SubPartnerApplication } from './types';
-import { injectFaqSchemaInHead, injectGoogleSiteVerification } from './utils/seo';
+import { injectFaqSchemaInHead, injectGoogleSiteVerification, injectSeoTags } from './utils/seo';
 import { TopBanner } from './components/TopBanner';
 import { HeroSection } from './components/HeroSection';
 import { SocialMediaBar } from './components/SocialMediaBar';
@@ -85,6 +85,26 @@ export default function App() {
 
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    let title = "Bonus Promo Code | 500% Welcome Bonus & Casino Promo Codes 2026";
+    let desc = "Get official 500% Welcome Bonus promo codes for top gaming platforms including 1Win, Mostbet, Stake, BC.Game, Pin-Up Casino, Parimatch, and Melbet. Use promo code MAXBOOST500 to claim instant cashback & 200 free spins!";
+    let canonical = `https://bonuspromocode.in${currentPath === '/' ? '' : currentPath}`;
+    
+    if (currentPath === '/privacy-policy') {
+      title = "Privacy Policy | BonusPromoCode";
+      desc = "Privacy policy and data handling guidelines for BonusPromoCode.";
+    } else if (currentPath === '/terms') {
+      title = "Terms & Conditions | BonusPromoCode";
+      desc = "Terms of service and conditions for using our gaming promo codes and affiliate portal.";
+    }
+    
+    // Only inject for these top level routes, dynamic routes handle their own
+    if (['/', '/privacy-policy', '/terms'].includes(currentPath)) {
+      injectSeoTags(title, desc, canonical, 'https://bonuspromocode.in/logos/1win.png');
+    }
+  }, [currentPath]);
+
 
   // Modals
   const [showWheelModal, setShowWheelModal] = useState(false);
@@ -257,6 +277,9 @@ export default function App() {
 
   // Handle Event Tracking
   const trackEvent = async (eventType: 'click' | 'copy' | 'wheel_spin', platformId?: string) => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', eventType, { platform_id: platformId });
+    }
     try {
       await fetch('/api/track', {
         method: 'POST',
@@ -328,7 +351,7 @@ export default function App() {
 
   // Claim click handler -> Activates 10 min urgency timer & redirects to /go/slug
   const handleClaimClick = (p: GamingPlatform) => {
-    trackEvent('click', p.id);
+        trackEvent('click', p.id);
     const endTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
     const timerData = {
       platformName: p.name,

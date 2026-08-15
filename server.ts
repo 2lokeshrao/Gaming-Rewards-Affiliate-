@@ -9,8 +9,17 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 
 const app = express();
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
 app.disable('x-powered-by');
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET;

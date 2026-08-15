@@ -11,7 +11,15 @@
   AddType image/jpeg .jpg .jpeg
 </IfModule>
 
+# Enable Gzip / Deflate Compression for high Mobile Speed Score
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/otf font/ttf font/eot
+</IfModule>
+
 <IfModule mod_headers.c>
+  # Enable Keep-Alive connection
+  Header set Connection keep-alive
+
   # Never cache index.html so deployments are picked up immediately
   <FilesMatch "\.(html|htm)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"

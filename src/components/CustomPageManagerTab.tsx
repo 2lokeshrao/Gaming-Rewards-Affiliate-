@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { CustomPage, GlobalConfig } from '../types';
 import { Plus, Trash2, Edit3, Save, Globe } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
+const MDEditor = React.lazy(() => import('@uiw/react-md-editor'));
 
 interface CustomPageManagerTabProps {
   pages: CustomPage[];

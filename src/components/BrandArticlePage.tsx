@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify';
-import React, { useEffect, useMemo } from 'react';
-import Markdown from 'react-markdown';
+import React, { Suspense, useEffect, useMemo } from 'react';
+const Markdown = React.lazy(() => import('react-markdown'));
 import { GamingPlatform, UserGeo, CustomPage, GlobalConfig } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getGeoContext, getSeoTemplates } from '../utils/seoTemplates';

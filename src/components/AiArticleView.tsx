@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { GamingPlatform, GlobalConfig, CustomPage, AIArticle } from '../types';
 import { BackButton } from './BackButton';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { Eye, Calendar, Tag, ChevronRight } from 'lucide-react';
-import Markdown from 'react-markdown';
+const Markdown = React.lazy(() => import('react-markdown'));
 
 interface AiArticleViewProps {
   article: AIArticle;
@@ -92,7 +92,9 @@ export const AiArticleView: React.FC<AiArticleViewProps> = ({ article, platforms
                   <div className="markdown-body">
                     {article.content.split('[CTA]').map((part, index, array) => (
                       <React.Fragment key={index}>
-                        <Markdown>{part}</Markdown>
+                        <Suspense fallback={<div>Loading content...</div>}>
+<Markdown>{part}</Markdown>
+</Suspense>
                         {index < array.length - 1 && targetPlatform && (
                            <div className="my-8 flex justify-center">
                              <button 

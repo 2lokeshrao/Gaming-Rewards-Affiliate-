@@ -16,9 +16,9 @@ export default defineConfig(() => {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-is'],
-            'vendor-ui': ['lucide-react', 'recharts'],
+            'vendor-ui': ['lucide-react'],
             'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-            'vendor-editor': ['@uiw/react-md-editor', 'react-markdown', 'dompurify', 'isomorphic-dompurify']
+            'vendor-editor': ['dompurify', 'isomorphic-dompurify']
           }
         }
       },

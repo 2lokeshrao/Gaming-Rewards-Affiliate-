@@ -22,7 +22,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
         decoding="async"
         onLoad={() => setIsLoaded(true)}
         onError={(e) => {
-          e.currentTarget.src = "/logos/placeholder.png";
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII=";
           setIsLoaded(true);
         }}
         className={`w-full h-full object-cover transition-opacity duration-500 rounded-[inherit] ${

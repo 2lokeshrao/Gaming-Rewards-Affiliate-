@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bonus Promo Code | 500% Welcome Bonus & Casino Promo Codes 2026</title>
+    
+    <!-- Google Translate Auto-Localization Script -->
+        
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Get official 500% Welcome Bonus promo codes for top gaming platforms including 1Win, Mostbet, Stake, BC.Game, Pin-Up Casino, Parimatch, and Melbet. Use promo code MAXBOOST500 to claim instant cashback & 200 free spins!" />
+    <meta name="keywords" content="bonus promo code, bonuspromocode.in, 1win promo code, 1win promo code today, 1win welcome bonus 500%, 1win free spins code, mostbet promo code, stake bonus code, casino promo codes 2026, gambling affiliate portal" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="author" content="BonusPromoCode.in" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BonusPromoCode.in | Top Casino Promo Codes 2026" />
+    <meta property="og:description" content="Official verified promo codes for 1Win, Mostbet, Stake & Pin-Up. Claim 500% deposit bonus + 200 free spins instantly." />
+    <meta property="og:site_name" content="Bonus Promo Code" />
+    <meta property="og:url" content="https://bonuspromocode.in" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bonus Promo Code - 500% Welcome Bonus 2026" />
+    <meta name="twitter:description" content="Claim 500% deposit bonus on 1Win, Mostbet, Pin-Up and Stake with official promo codes at bonuspromocode.in" />
+
+    <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://bonuspromocode.in/#website",
+          "name": "Bonus Promo Code",
+          "description": "Official verified promo codes for 1Win, Mostbet, Stake, BC.Game, Pin-Up Casino, Parimatch, and Melbet.",
+          "inLanguage": "en-US",
+          "url": "https://bonuspromocode.in"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://bonuspromocode.in/#organization",
+          "name": "Bonus Promo Code Portal",
+          "url": "https://bonuspromocode.in"
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://bonuspromocode.in/#localbusiness",
+          "name": "Bonus Promo Code Authority",
+          "image": "https://bonuspromocode.in/logo.png",
+          "url": "https://bonuspromocode.in",
+          "priceRange": "$",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Online Portal",
+            "addressLocality": "Global",
+            "addressCountry": "IN"
+          },
+          "description": "Leading gaming affiliate authority providing verified promo codes and bonuses."
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://bonuspromocode.in/#webpage",
+          "url": "https://bonuspromocode.in",
+          "name": "Bonus Promo Code - Affiliate Authority",
+          "isPartOf": {
+            "@id": "https://bonuspromocode.in/#website"
+          },
+          "about": {
+            "@type": "Thing",
+            "name": "Gaming Affiliate Authority"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is the official 1Win promo code for 500% bonus?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The official verified 1Win promo code for 2026 is MAXBOOST500. Enter MAXBOOST500 during registration to unlock a 500% welcome deposit bonus up to ₹75,000 / $1,000 + 200 free spins."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How to claim Mostbet welcome bonus promo code?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Use promo code MAXBOOST500 when creating a new account on Mostbet to receive a 125% first deposit match plus 250 free spins on Aviator & Slots."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can existing users claim 500% welcome bonus?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Welcome deposit bonuses are exclusively for new account registrations. If you already have an old account, use our Email Eligibility Checker and register with a new email address to receive the full 500% bonus package."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    <script type="module" crossorigin src="/assets/index-uWIPG8fT.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-ui-BPKG80ae.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-editor-CFzc71-J.js">
+    <link rel="stylesheet" crossorigin href="/assets/vendor-editor-5RsN_0Ue.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-DA4XEJa6.css">
+  </head>
+  <body class="bg-slate-950 text-slate-100 font-sans antialiased">
+        <div id="root"></div>
+  </body>
+</html>
+

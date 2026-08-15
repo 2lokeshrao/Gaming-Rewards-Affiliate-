@@ -68,7 +68,7 @@ export const PlatformFeedbackModal: React.FC<PlatformFeedbackModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }}
+          <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }}
             src={platform.logoUrl}
             alt={platform.name}
             className="w-12 h-12 rounded-xl object-cover border border-slate-700 bg-slate-950"

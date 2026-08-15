@@ -372,7 +372,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                     {/* Platform Name & Logo */}
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
-                        <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.src = "/logos/placeholder.png"; }}
+                        <img loading="lazy" width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }}
                           src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
                           alt={panel.platformName}
                           width="32"

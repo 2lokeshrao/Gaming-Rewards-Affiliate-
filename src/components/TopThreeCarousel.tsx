@@ -99,7 +99,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                   <div className="flex items-center gap-3">
                     <LazyImage
                       priority={true}
-                      src={p.logoUrl}
+                      src={"/api/cdn/images/" + p.id + ".webp"}
                       alt={p.name}
                       width="56"
                       height="56"

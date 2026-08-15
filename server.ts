@@ -10,8 +10,44 @@ import { initialGlobalConfig, initialPlatforms } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
+import fs from 'fs';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import winston from 'winston';
+import sharp from 'sharp';
+
+// Configure Winston Logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console()
+  ]
+});
+
+// Initialize Sentry for Node
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+  logger.info("Sentry Node initialized.");
+}
 
 const app = express();
+
+// Sentry Request Handler
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 app.use(compression({
   level: 6,
   threshold: 1024,
@@ -26,7 +62,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
 
 if (!JWT_SECRET || !ADMIN_PASSCODE) {
-  console.error("FATAL ERROR: JWT_SECRET or ADMIN_PASSCODE environment variables are missing.");
+  logger.error("FATAL ERROR: JWT_SECRET or ADMIN_PASSCODE environment variables are missing.");
   process.exit(1);
 }
 
@@ -48,29 +84,28 @@ const generalLimiter = rateLimit({
 });
 app.use(generalLimiter);
 
-// Initialize Firebase
-const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+// Initialize Firebase Securely from Environment Variables (Strict Secrets Management)
 let firestoreDb: any = null;
 try {
-  if (fs.existsSync(firebaseConfigPath)) {
-    const config = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-    const appInfo = admin.initializeApp({
-      projectId: config.projectId,
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      }),
     });
-    if (config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)') {
-      firestoreDb = getFirestore(appInfo, config.firestoreDatabaseId);
-    } else {
-      firestoreDb = getFirestore();
-    }
+    const dbId = process.env.FIREBASE_DATABASE_ID && process.env.FIREBASE_DATABASE_ID !== '(default)' 
+      ? process.env.FIREBASE_DATABASE_ID 
+      : undefined;
+    firestoreDb = dbId ? getFirestore(admin.app(), dbId) : getFirestore();
+    logger.info("Firebase initialized securely from environment variables.");
   } else {
-    admin.initializeApp();
-    firestoreDb = getFirestore();
+    logger.warn("Firebase credentials missing in ENV. Running with local fallback storage.");
   }
-  console.log("Firebase initialized successfully");
 } catch (e) {
-  console.error("Firebase init error:", e);
+  logger.error("Firebase init error:", e);
 }
-
 
 // In-Memory Database State
 let statePlatforms: GamingPlatform[] = [...initialPlatforms];
@@ -88,44 +123,94 @@ let stateSubPartners: SubPartnerApplication[] = [
     estimatedMonthlyPlayers: "100 - 300 Players / Month",
     status: "approved",
     appliedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "sub_2",
-    fullName: "Alex Miller",
-    email: "alex.affiliate@example.com",
-    whatsapp: "+1 555 019 2831",
-    platformId: "mostbet",
-    platformName: "Mostbet Official",
-    trafficSource: "YouTube Gaming Reviews",
-    estimatedMonthlyPlayers: "50 - 150 Players / Month",
-    status: "pending",
-    appliedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
   }
 ];
 
-import fs from 'fs';
 const DB_FILE = path.join(process.cwd(), 'database.json');
 
-function saveState() {
+async function saveState() {
   const data = { statePlatforms, stateConfig, stateSubPartners };
+  
+  if (firestoreDb) {
+    try {
+      await firestoreDb.collection('app_state').doc('global').set(data);
+      logger.info("State synchronized to Firestore single source of truth.");
+      return;
+    } catch (e) {
+      logger.error("Firestore save state error:", e);
+    }
+  }
+
+  // Fallback to local JSON if Firestore isn't configured
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
   } catch (e) {
-    console.error("Save state error:", e);
+    logger.error("Save state error:", e);
   }
 }
 
-try {
-  if (fs.existsSync(DB_FILE)) {
-    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    if (data.statePlatforms) statePlatforms = data.statePlatforms;
-    if (data.stateConfig) stateConfig = data.stateConfig;
-    if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
-    console.log("Loaded state from database.json");
+async function loadState() {
+  if (firestoreDb) {
+    try {
+      const doc = await firestoreDb.collection('app_state').doc('global').get();
+      if (doc.exists) {
+        const data = doc.data() as any;
+        if (data.statePlatforms) statePlatforms = data.statePlatforms;
+        if (data.stateConfig) stateConfig = data.stateConfig;
+        if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+        logger.info("Loaded state from Firestore.");
+        return;
+      } else {
+        logger.info("No state found in Firestore. Saving defaults.");
+        await saveState();
+        return;
+      }
+    } catch (e) {
+      logger.error("Firestore load state error:", e);
+    }
   }
-} catch (e) {
-  console.error("Load state error:", e);
+
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      if (data.statePlatforms) statePlatforms = data.statePlatforms;
+      if (data.stateConfig) stateConfig = data.stateConfig;
+      if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+      logger.info("Loaded state from local database.json (Fallback)");
+    }
+  } catch (e) {
+    logger.error("Load state error:", e);
+  }
 }
+
+// Ensure state is loaded asynchronously during boot
+loadState();
+
+// --- IMAGE OPTIMIZATION CDN ROUTE ---
+app.get('/api/cdn/images/:platformId.webp', async (req, res) => {
+  const platform = statePlatforms.find(p => p.id === req.params.platformId);
+  if (!platform || !platform.logoUrl) {
+    return res.status(404).json({ error: 'Image not found' });
+  }
+
+  if (platform.logoUrl.startsWith('data:image/')) {
+    try {
+      const base64Data = platform.logoUrl.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const webpBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
+      
+      res.setHeader('Content-Type', 'image/webp');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.send(webpBuffer);
+    } catch (e) {
+      logger.error("Image optimization error:", e);
+      res.status(500).send('Error optimizing image');
+    }
+  } else {
+    // If it's already an external URL, just redirect to it
+    res.redirect(platform.logoUrl);
+  }
+});
 
 
 let stateCustomPages: any[] = [];
@@ -326,9 +411,9 @@ app.get('/api/postback/:platform', async (req, res) => {
         ...postbackData,
         timestamp: FieldValue.serverTimestamp()
       });
-      console.log(`Saved S2S postback for ${reqPlatform} to Firestore.`);
+      logger.info(`Saved S2S postback for ${reqPlatform} to Firestore.`);
     } else {
-      console.log("Firestore DB not initialized, postback only in memory");
+      logger.info("Firestore DB not initialized, postback only in memory");
     }
     
     // Also push to local state for temporary viewing in admin
@@ -347,7 +432,7 @@ app.get('/api/postback/:platform', async (req, res) => {
     // We must return 200 OK so the network knows we received it
     res.status(200).send('OK');
   } catch (error) {
-    console.error('Error saving postback:', error);
+    logger.error('Error saving postback:', error);
     res.status(500).send('Error');
   }
 });
@@ -846,7 +931,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
     const output = JSON.parse(response.text || '{}');
     res.json({ success: true, data: output });
   } catch (error: any) {
-    console.error('Error generating SEO content with Gemini:', error);
+    logger.error('Error generating SEO content with Gemini:', error);
     res.status(500).json({ error: error.message || 'Failed to generate SEO content' });
   }
 });
@@ -900,7 +985,7 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     const generated = JSON.parse(response.text);
     res.json(generated);
   } catch (error: any) {
-    console.error('Error generating AI article:', error);
+    logger.error('Error generating AI article:', error);
     res.status(500).json({ error: 'Failed to generate article: ' + error.message });
   }
 });
@@ -928,7 +1013,7 @@ async function startServer() {
       || candidates.find(c => fs.existsSync(path.join(c, 'index.html')))
       || path.join(process.cwd(), 'dist');
 
-    console.log(`[Production] Serving static files from: ${distPath}`);
+    logger.info(`[Production] Serving static files from: ${distPath}`);
 
     // Serve static files with proper MIME types & cache headers
     app.use(express.static(distPath, {
@@ -1005,7 +1090,7 @@ const autoblogInterval = setInterval(async () => {
     const tops = topics && topics.length > 0 ? topics : defaultTopics;
     const topic = tops[Math.floor(Math.random() * tops.length)];
 
-    console.log(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
+    logger.info(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
     
     const prompt = `You are an expert iGaming SEO copywriter. Write a comprehensive, highly engaging, and highly converting article (800-1500 words) about: "${topic}".
     Category: ${category}.
@@ -1064,15 +1149,15 @@ const autoblogInterval = setInterval(async () => {
 
       if (!stateConfig.articles) stateConfig.articles = [];
       stateConfig.articles = [newArticle, ...stateConfig.articles];
-      console.log(`[Auto-Blogger] Successfully created draft: ${data.title}`);
+      logger.info(`[Auto-Blogger] Successfully created draft: ${data.title}`);
     }
   } catch (err) {
-    console.error('[Auto-Blogger] Error generating article:', err);
+    logger.error('[Auto-Blogger] Error generating article:', err);
   }
 }, (stateConfig.autoBlogSettings?.intervalHours || 24) * 60 * 60 * 1000); // Default to checking daily, but interval updates when hours change.
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Affiliate Hub App listening on port ${PORT}`);
+    logger.info(`Affiliate Hub App listening on port ${PORT}`);
   });
 }
 

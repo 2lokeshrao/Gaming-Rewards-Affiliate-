@@ -90,7 +90,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
               </span>
               <LazyImage
                 priority={index < 2}
-                src={p.logoUrl}
+                src={"/api/cdn/images/" + p.id + ".webp"}
                 alt={p.name}
                 width="64"
                 height="64"

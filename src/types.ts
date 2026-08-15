@@ -74,6 +74,7 @@ export interface GamingPlatform {
   promoCode: string;
   rawAffiliateUrl: string;
   masterPartnerUrl?: string; // Sub-partner registration link for master panel
+  claimUrl?: string;
   reviewContent?: string; // Custom HTML/Markdown for the brand review page
   isFeatured: boolean;
   featuredRank: number | null; // 1 (Gold), 2 (Silver), 3 (Bronze)

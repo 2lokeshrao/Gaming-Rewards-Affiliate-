@@ -2,7 +2,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
-import fs from 'fs';
 import * as admin from 'firebase-admin';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
@@ -382,8 +381,8 @@ app.get('/api/postback/:platform', async (req, res) => {
     stateTrackLogs.unshift({
       id: `pb_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
       eventType: 'visit' as any,
-      platformId: platform,
-      platformName: platform,
+      platformId: platform.id,
+      platformName: platform.name,
       timestamp: new Date().toISOString(),
       country: 'S2S',
       ip: 'Server',

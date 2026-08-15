@@ -98,6 +98,7 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                 <div className="flex items-center justify-between mt-2 mb-4">
                   <div className="flex items-center gap-3">
                     <LazyImage
+                      priority={true}
                       src={p.logoUrl}
                       alt={p.name}
                       width="56"

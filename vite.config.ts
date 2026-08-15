@@ -19,14 +19,14 @@ export default defineConfig(() => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-is'],
-            'vendor-ui': ['lucide-react'],
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-ui': ['lucide-react', 'react-is'],
             'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
             'vendor-editor': ['dompurify', 'isomorphic-dompurify']
           }
         }
       },
-      chunkSizeWarningLimit: 800
+      chunkSizeWarningLimit: 1000
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',

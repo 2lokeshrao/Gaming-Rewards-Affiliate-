@@ -48,7 +48,7 @@ export const initialGlobalConfig: GlobalConfig = {
   topBannerTemplate: "🔥 Top Verified Gaming Sites available in {{country}} today!",
   enableLuckyWheel: true,
   enableLiveWinnersTicker: true,
-  enableBotCloaking: true,
+  enableBotCloaking: false,
   enableSubPartnerProgram: true,
   subPartnerHeadline: "Become an Official Gaming Sub-Partner & Earn 45%-50% Lifetime RevShare",
   featuredPrizePlatformId: "1win",
@@ -68,8 +68,8 @@ export const initialGlobalConfig: GlobalConfig = {
       isActive: true,
       metaTitle: "Megapari Promo Code MEGACRICKET500 | Free Bet 2026",
       metaDescription: "Claim 100% risk free cricket bet with code MEGACRICKET500 on Megapari.",
-      clicksCount: 340,
-      copiesCount: 210
+      clicksCount: 0,
+      copiesCount: 0
     },
     {
       id: "coupon_melbet",
@@ -83,8 +83,8 @@ export const initialGlobalConfig: GlobalConfig = {
       isActive: true,
       metaTitle: "Melbet Promo Code MELVIPMAX | 200% Deposit Bonus",
       metaDescription: "Get official Melbet promo code MELVIPMAX for 200% deposit bonus.",
-      clicksCount: 280,
-      copiesCount: 175
+      clicksCount: 0,
+      copiesCount: 0
     }
   ],
   // Tracking Pixels & Feedback
@@ -97,31 +97,41 @@ export const initialGlobalConfig: GlobalConfig = {
     {
       id: "fb_1",
       platformId: "1win",
-      platformName: "1Win",
-      userName: "Alex R.",
+      platformName: "1Win Casino & Sports",
+      userName: "Rahul Sharma",
       rating: 5,
-      comment: "Used promo code MAXBOOST500 during sign up and got 500% deposit bonus instantly! Instant UPI withdrawal worked in 5 minutes.",
-      createdAt: "2026-08-09T14:30:00.000Z",
+      comment: "The promo code worked perfectly! I got my 500% welcome bonus instantly. The UPI withdrawal was super fast, took only 10 minutes to reach my bank account.",
+      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
       isApproved: true
     },
     {
       id: "fb_2",
       platformId: "mostbet",
-      platformName: "Mostbet",
-      userName: "Rahul K.",
+      platformName: "Mostbet Official",
+      userName: "Priya Singh",
       rating: 5,
-      comment: "Great odds on IPL matches and fast customer support via Telegram. Code works 100%.",
-      createdAt: "2026-08-08T18:20:00.000Z",
+      comment: "Genuine and fast! Used the VIP bonus code while registering and the deposit boost was credited right away. Great odds for cricket matches.",
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
       isApproved: true
     },
     {
       id: "fb_3",
       platformId: "stake",
-      platformName: "Stake.com",
-      userName: "Marco P.",
+      platformName: "Stake Crypto Casino",
+      userName: "Alex Johnson",
+      rating: 5,
+      comment: "Best platform for crypto users. No KYC delays and the withdrawal was literally instant to my USDT wallet. Code is 100% legit.",
+      createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+      isApproved: true
+    },
+    {
+      id: "fb_4",
+      platformId: "pinup",
+      platformName: "Pin-Up Casino",
+      userName: "Amit Kumar",
       rating: 4,
-      comment: "VIP rakeback and instant crypto payout. Smooth registration experience.",
-      createdAt: "2026-08-07T09:15:00.000Z",
+      comment: "I love the 250 free spins! It was very easy to apply the promo code and start playing. Customer support is also very helpful on Telegram.",
+      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
       isApproved: true
     }
   ],
@@ -163,10 +173,10 @@ export const initialGlobalConfig: GlobalConfig = {
     heroDesign: "variant_a",
     buttonColor: "amber",
     stats: {
-      variantAViews: 3420,
-      variantBViews: 3180,
-      variantAClicks: 890,
-      variantBClicks: 1140
+      variantAViews: 0,
+      variantBViews: 0,
+      variantAClicks: 0,
+      variantBClicks: 0
     }
   },
   partnerPanelConfigs: [
@@ -180,12 +190,12 @@ export const initialGlobalConfig: GlobalConfig = {
       syncEnabled: true,
       lastSyncedAt: new Date().toISOString(),
       stats: {
-        totalRegistrations: 642,
-        ftdCount: 418,
-        totalDepositsAmount: 24850,
-        netGamingRevenue: 18420,
-        commissionEarned: 9210,
-        revSharePercent: 50
+        totalRegistrations: 0,
+        ftdCount: 0,
+        totalDepositsAmount: 0,
+        netGamingRevenue: 0,
+        commissionEarned: 0,
+        revSharePercent: 45
       }
     },
     {
@@ -198,11 +208,11 @@ export const initialGlobalConfig: GlobalConfig = {
       syncEnabled: true,
       lastSyncedAt: new Date().toISOString(),
       stats: {
-        totalRegistrations: 415,
-        ftdCount: 260,
-        totalDepositsAmount: 14200,
-        netGamingRevenue: 11500,
-        commissionEarned: 5175,
+        totalRegistrations: 0,
+        ftdCount: 0,
+        totalDepositsAmount: 0,
+        netGamingRevenue: 0,
+        commissionEarned: 0,
         revSharePercent: 45
       }
     },
@@ -216,11 +226,11 @@ export const initialGlobalConfig: GlobalConfig = {
       syncEnabled: true,
       lastSyncedAt: new Date().toISOString(),
       stats: {
-        totalRegistrations: 380,
-        ftdCount: 245,
-        totalDepositsAmount: 12800,
-        netGamingRevenue: 9800,
-        commissionEarned: 4410,
+        totalRegistrations: 0,
+        ftdCount: 0,
+        totalDepositsAmount: 0,
+        netGamingRevenue: 0,
+        commissionEarned: 0,
         revSharePercent: 45
       }
     },
@@ -234,12 +244,12 @@ export const initialGlobalConfig: GlobalConfig = {
       syncEnabled: true,
       lastSyncedAt: new Date().toISOString(),
       stats: {
-        totalRegistrations: 290,
-        ftdCount: 185,
-        totalDepositsAmount: 9400,
-        netGamingRevenue: 7200,
-        commissionEarned: 2880,
-        revSharePercent: 40
+        totalRegistrations: 0,
+        ftdCount: 0,
+        totalDepositsAmount: 0,
+        netGamingRevenue: 0,
+        commissionEarned: 0,
+        revSharePercent: 45
       }
     }
   ],
@@ -249,7 +259,6 @@ export const initialGlobalConfig: GlobalConfig = {
   // Email Eligibility Checker Settings
   strictEmailChecking: true,
   registeredEmailsList: [
-    "lokeshrao050@gmail.com",
     "user@example.com",
     "test@gmail.com",
     "admin@1win.com",
@@ -275,8 +284,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: true,
     featuredRank: 1, // Gold
     isActive: true,
-    clicksCount: 1420,
-    copiesCount: 890,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Casino & Sportsbook",
     metaTitle: "1Win Casino & Sports Promo Code 500TOPUP | Best Bonus 2026",
     metaDescription: "Use verified promo code 500TOPUP for 1Win Casino & Sports to claim your exclusive welcome bonus. Fast sign-up, instant withdrawals, and top rewards.",
@@ -308,8 +317,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: true,
     featuredRank: 2, // Silver
     isActive: true,
-    clicksCount: 1105,
-    copiesCount: 630,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook & Slots",
     metaTitle: "Mostbet Official Promo Code MOSTBONUSVIP | Best Bonus 2026",
     metaDescription: "Use verified promo code MOSTBONUSVIP for Mostbet Official to claim your exclusive welcome bonus. Fast sign-up, instant withdrawals, and top rewards.",
@@ -340,8 +349,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: true,
     featuredRank: 3, // Bronze
     isActive: true,
-    clicksCount: 880,
-    copiesCount: 410,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Live Casino & Slots",
     metaTitle: "Pin-Up Casino Promo Code PINUPVIP2026 | Best Bonus 2026",
     metaDescription: "Use verified promo code PINUPVIP2026 for Pin-Up Casino to claim your exclusive welcome bonus. Fast sign-up, instant withdrawals, and top rewards.",
@@ -368,8 +377,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 750,
-    copiesCount: 320,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Crypto Gaming",
     metaTitle: "Stake Crypto Casino Promo Code STAKEPRO2026 | Best Bonus 2026",
     metaDescription: "Use verified promo code STAKEPRO2026 for Stake Crypto Casino to claim your exclusive welcome bonus. Fast sign-up, instant withdrawals, and top rewards.",
@@ -396,8 +405,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 620,
-    copiesCount: 290,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Crypto & Crash Games"
   ,
     metaTitle: "BC.Game VIP Promo Code 982zzt4b7s | Best Bonus 2026",
@@ -421,8 +430,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 540,
-    copiesCount: 180,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook"
   ,
     metaTitle: "Parimatch Global Promo Code PARIBONUS | Best Bonus 2026",
@@ -446,8 +455,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 840,
-    copiesCount: 310,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Esports Betting"
   ,
     metaTitle: "GG.BET Promo Code GGBONUS200 | Best Bonus 2026",
@@ -471,8 +480,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 750,
-    copiesCount: 200,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Esports Betting"
   ,
     metaTitle: "Betway Esports Promo Code BETWAYVIP | Best Bonus 2026",
@@ -496,8 +505,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 420,
-    copiesCount: 150,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Esports Betting"
   ,
     metaTitle: "Rivalry Promo Code RIVALRY100 | Best Bonus 2026",
@@ -521,8 +530,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 310,
-    copiesCount: 90,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Crypto Esports"
   ,
     metaTitle: "Thunderpick Promo Code THUNDER500 | Best Bonus 2026",
@@ -546,8 +555,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 680,
-    copiesCount: 110,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Esports Betting"
   ,
     metaTitle: "Pinnacle Esports Promo Code PINNACLEVIP | Best Bonus 2026",
@@ -571,8 +580,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 920,
-    copiesCount: 450,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook"
   ,
     metaTitle: "1xBet Promo Code 1x_5482230 | Best Bonus 2026",
@@ -596,8 +605,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 950,
-    copiesCount: 420,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Indian Sportsbook"
   ,
     metaTitle: "Rajabets Promo Code RAJABOOST | Best Bonus 2026",
@@ -621,8 +630,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 880,
-    copiesCount: 390,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook & Exchange"
   ,
     metaTitle: "Dafabet India Promo Code DAFA170 | Best Bonus 2026",
@@ -646,8 +655,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 760,
-    copiesCount: 340,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Indian Sportsbook"
   ,
     metaTitle: "10CRIC Promo Code 10CRICVIP | Best Bonus 2026",
@@ -671,8 +680,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 650,
-    copiesCount: 220,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook & Casino"
   ,
     metaTitle: "22Bet India Promo Code 22MAX | Best Bonus 2026",
@@ -696,8 +705,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 810,
-    copiesCount: 400,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook"
   ,
     metaTitle: "Melbet Promo Code MELBETINDIA | Best Bonus 2026",
@@ -721,8 +730,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 520,
-    copiesCount: 190,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook"
   ,
     metaTitle: "Megapari Promo Code MEGA26K | Best Bonus 2026",
@@ -746,8 +755,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: true,
     featuredRank: 1,
     isActive: true,
-    clicksCount: 9540,
-    copiesCount: 4210,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Sportsbook",
     metaTitle: "Bet365 Promo Code 365WIN | Best Global Bookmaker",
     metaDescription: "Bet365 is the most trusted global bookmaker. Use promo code 365WIN for best welcome bonuses and live sports streaming.",
@@ -770,8 +779,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 8120,
-    copiesCount: 3950,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Legal Casino & Sports",
     metaTitle: "LeoVegas Promo Code LEOVIP | King of Casino",
     metaDescription: "Join LeoVegas, the award-winning online casino. Claim up to ₹80,000 in welcome bonuses with our exclusive LEOVIP code.",
@@ -794,8 +803,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 6200,
-    copiesCount: 2980,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Regulated Sportsbook",
     metaTitle: "888sport Promo Code 888MAX | Free Bets 2026",
     metaDescription: "Bet securely with 888sport, a fully licensed UKGC operator. Use code 888MAX for an exclusive bet €10 get €30 offer.",
@@ -818,8 +827,8 @@ export const initialPlatforms: GamingPlatform[] = [
     isFeatured: false,
     featuredRank: null,
     isActive: true,
-    clicksCount: 5400,
-    copiesCount: 2150,
+    clicksCount: 0,
+    copiesCount: 0,
     category: "Global Sportsbook",
     metaTitle: "Unibet Promo Code UNIVIP | Trusted Betting 2026",
     metaDescription: "Unibet offers a secure, legal betting environment with incredible odds. Claim your money back bonus today.",

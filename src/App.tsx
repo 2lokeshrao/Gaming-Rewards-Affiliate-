@@ -148,14 +148,25 @@ export default function App() {
   // Fetch data on load
   const loadData = async () => {
     try {
-      const res = await fetch('/api/data');
+      const token = localStorage.getItem('affiliate_admin_token');
+      let res;
+      let usedAdmin = false;
+      if (token) {
+        res = await fetch('/api/admin/data', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) usedAdmin = true;
+      }
+      if (!res || !res.ok) {
+        res = await fetch('/api/data');
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setPlatforms(data.platforms);
         setConfig(data.config);
-        setStats(data.stats);
         setFakeWinners(data.fakeWinners);
-        setLogs(data.logs);
+        
+        if (data.stats) setStats(data.stats);
+        if (data.logs) setLogs(data.logs);
         if (data.subPartners) setSubPartners(data.subPartners);
         if (data.customPages) setCustomPages(data.customPages);
         if (data.geo) {
@@ -402,6 +413,17 @@ export default function App() {
         if (data.token) {
           localStorage.setItem('affiliate_admin_token', data.token);
           setAdminToken(data.token);
+          // Refetch with admin token to get stats, logs, etc.
+          const adminRes = await fetch('/api/admin/data', { headers: { Authorization: `Bearer ${data.token}` } });
+          if (adminRes.ok) {
+            const adminData = await adminRes.json();
+            if (adminData.stats) setStats(adminData.stats);
+            if (adminData.logs) setLogs(adminData.logs);
+            if (adminData.subPartners) setSubPartners(adminData.subPartners);
+            if (adminData.customPages) setCustomPages(adminData.customPages);
+            setConfig(adminData.config);
+            setPlatforms(adminData.platforms);
+          }
           setShowAdminLogin(false);
           setViewingAdmin(true);
           return true;

@@ -44,11 +44,11 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
     const existing = config.partnerPanelConfigs?.find(item => item.platformId === p.id);
     if (existing) return existing;
 
-    const mockRegs = Math.floor(200 + Math.random() * 400);
-    const mockFtds = Math.floor(mockRegs * 0.62);
-    const mockDep = Math.floor(mockFtds * 60);
-    const mockNgr = Math.floor(mockDep * 0.75);
-    const mockCommission = Math.floor(mockNgr * 0.45);
+    const mockRegs = 0;
+    const mockFtds = 0;
+    const mockDep = 0;
+    const mockNgr = 0;
+    const mockCommission = 0;
 
     return {
       platformId: p.id,
@@ -102,11 +102,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
     setTimeout(() => {
       const updatedPanels = panelConfigs.map(item => {
         // Boost mock stats slightly to demonstrate live sync
-        const extraRegs = Math.floor(1 + Math.random() * 5);
-        const extraFtds = Math.floor(extraRegs * 0.7);
-        const extraDep = extraFtds * 50;
-        const extraNgr = Math.floor(extraDep * 0.75);
-        const extraCommission = Math.floor(extraNgr * 0.45);
+        // Only syncs timestamp. Real data should come from actual S2S postback DB aggregation.
+        const extraRegs = 0;
+        const extraFtds = 0;
+        const extraDep = 0;
+        const extraNgr = 0;
+        const extraCommission = 0;
 
         return {
           ...item,

@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React from 'react';
 import { GamingPlatform, CustomPage, GlobalConfig, UserGeo } from '../types';
 import { Star, ChevronRight, FileText } from 'lucide-react';
@@ -23,7 +24,12 @@ export const Sidebar: React.FC<{
       {/* Ad Slot */}
       {config.sidebarAdHtml && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl overflow-hidden min-h-[250px] flex items-center justify-center text-slate-600 text-sm">
-          <div dangerouslySetInnerHTML={{ __html: config.sidebarAdHtml }} />
+          <div dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(config.sidebarAdHtml || '', {
+                  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                  ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                })
+              }} />
         </div>
       )}
 

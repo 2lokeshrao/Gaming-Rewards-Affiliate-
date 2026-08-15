@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React from 'react';
 import { ShieldCheck, Users, Lock } from 'lucide-react';
 import { GamingPlatform, GlobalConfig, CustomPage } from '../types';
@@ -97,7 +98,12 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
           <div className="flex items-center justify-center gap-2 font-bold text-slate-200">
             <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span dangerouslySetInnerHTML={{ __html: config.copyrightText || `BonusPromoCode.in Affiliate Portal &copy; ${new Date().getFullYear()}` }} />
+            <span dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(config.copyrightText || `BonusPromoCode.in Affiliate Portal &copy; ${new Date().getFullYear()}` || '', {
+                ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+              })
+            }} />
 </div>
           </div>
 

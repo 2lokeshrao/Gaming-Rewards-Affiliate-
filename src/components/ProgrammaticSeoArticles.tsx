@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React, { useState, useEffect } from 'react';
 import { GamingPlatform, UserGeo } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -130,22 +131,37 @@ export const ProgrammaticSeoArticles: React.FC<ProgrammaticSeoArticlesProps> = (
                       {/* SEO Article Text */}
                       <article className="prose prose-invert prose-slate max-w-none prose-h4:text-amber-300 prose-h4:font-bold prose-h4:mb-2 prose-h4:mt-6 prose-p:text-slate-300 prose-p:text-sm prose-p:leading-relaxed prose-strong:text-white prose-strong:font-bold prose-em:text-emerald-300">
                         <h4>{content.promoTitle}</h4>
-                        <p dangerouslySetInnerHTML={{ __html: content.promoContent }} />
+                        <p dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(content.promoContent || '', {
+                            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                            ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                          })
+                        }} />
 
                         <h4>{content.paymentTitle}</h4>
-                        <p dangerouslySetInnerHTML={{ __html: content.paymentContent }} />
+                        <p dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(content.paymentContent || '', {
+                            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                            ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                          })
+                        }} />
 
                         <h4>{content.legalTitle}</h4>
-                        <p dangerouslySetInnerHTML={{ __html: content.legalContent }} />
+                        <p dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(content.legalContent || '', {
+                            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                            ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                          })
+                        }} />
                       </article>
                       
                       {/* Internal link for dedicated page */}
                       <div className="mt-6 text-center sm:text-left border-t border-slate-800/80 pt-4">
                         <a 
-                          href={`/brands/${platform.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-promo-code-${geoContext.country.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                          href={`/brands/${platform.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-promo-code-${(geoContext.country || 'global').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                           onClick={(e) => {
                              e.preventDefault();
-                             const targetUrl = `/brands/${platform.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-promo-code-${geoContext.country.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                             const targetUrl = `/brands/${platform.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-promo-code-${(geoContext.country || 'global').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
                              window.history.pushState({}, '', targetUrl);
                              window.dispatchEvent(new PopStateEvent('popstate'));
                           }}

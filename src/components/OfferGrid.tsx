@@ -6,6 +6,7 @@ import { AdContainer } from './AdContainer';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
+import { LazyImage } from './LazyImage';
 
 
 interface OfferGridProps {
@@ -87,14 +88,12 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
               <span className="font-extrabold text-slate-500 text-sm w-5 text-center shrink-0">
                 #{index + 1}
               </span>
-              <img
+              <LazyImage
                 src={p.logoUrl}
                 alt={p.name}
-                loading="lazy"
-                decoding="async"
                 width="64"
                 height="64"
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-700 bg-slate-800 shrink-0"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border border-slate-700 bg-slate-800"
               />
               <div>
                 <h3 className="font-extrabold text-base sm:text-lg text-white leading-tight flex items-center flex-wrap gap-2">

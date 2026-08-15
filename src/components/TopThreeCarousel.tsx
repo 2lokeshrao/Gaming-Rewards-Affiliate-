@@ -5,6 +5,7 @@ import { UrgencyTimer } from './UrgencyTimer';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
+import { LazyImage } from './LazyImage';
 
 
 interface TopThreeProps {
@@ -96,13 +97,12 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
                 {/* Header info */}
                 <div className="flex items-center justify-between mt-2 mb-4">
                   <div className="flex items-center gap-3">
-                    <img
+                    <LazyImage
                       src={p.logoUrl}
                       alt={p.name}
                       width="56"
                       height="56"
-                      fetchPriority="high"
-                      className="w-14 h-14 rounded-xl object-cover border-2 border-slate-700/80 shadow-md bg-slate-800"
+                      className="w-14 h-14 rounded-xl border-2 border-slate-700/80 shadow-md bg-slate-800"
                     />
                     <div>
                       <h3 className="font-extrabold text-lg text-white leading-tight flex items-center gap-1.5">

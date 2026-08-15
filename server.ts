@@ -1,3 +1,5 @@
+import DOMPurify from 'isomorphic-dompurify';
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -7,13 +9,35 @@ import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
 import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'Yrz49KdiPqkYHxTWosxPG/gj53350tXp7MbqlxN0XI0=';
-const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || '@dmin123';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
+
+if (!JWT_SECRET || !ADMIN_PASSCODE) {
+  console.error("FATAL ERROR: JWT_SECRET or ADMIN_PASSCODE environment variables are missing.");
+  process.exit(1);
+}
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(generalLimiter);
 
 // Initialize Firebase
 const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
@@ -213,7 +237,7 @@ const handleAdminLogin = (req: Request, res: Response) => {
   if (password === ADMIN_PASSCODE) {
     // Successful login -> Reset rate limiter record
     loginAttemptTracker[clientIp] = { attempts: [], lockUntil: 0 };
-    const token = jwt.sign({ role: 'admin', authAt: Date.now() }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ role: 'admin', authAt: Date.now() }, JWT_SECRET, { expiresIn: '8h' });
     return res.json({ success: true, token });
   } else {
     record.attempts.push(Date.now());
@@ -241,7 +265,7 @@ app.post('/api/admin/login', adminLoginRateLimiter, handleAdminLogin);
 
 // API: Email Eligibility & Duplicate Check
 app.post('/api/check-email', (req, res) => {
-  const { email, platformId, forceMarkRegistered } = req.body;
+  const { email, platformId } = req.body;
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'Valid email address is required' });
   }
@@ -255,21 +279,6 @@ app.post('/api/check-email', (req, res) => {
     "test@gmail.com",
     "admin@1win.com"
   ];
-
-  if (forceMarkRegistered) {
-    if (!registeredList.includes(cleanEmail)) {
-      registeredList.push(cleanEmail);
-      stateConfig.registeredEmailsList = registeredList;
-    }
-    checkedEmails.add(cleanEmail);
-    return res.json({
-      email: cleanEmail,
-      hasExistingAccount: true,
-      platformName: platform?.name || 'Gaming Platform',
-      message: `Account '${cleanEmail}' marked as registered on ${platform?.name || 'this platform'}.`,
-      recommendedAction: `To guarantee your 500% Welcome Bonus & 200 Free Spins, please create your account using a NEW EMAIL ADDRESS.`
-    });
-  }
 
   // Check if email exists in list or matches keywords/checkedEmails
   const isExplicitlyRegistered = registeredList.some(registered =>
@@ -308,11 +317,18 @@ app.post('/api/check-email', (req, res) => {
 
 // API: S2S Postback (Webhook) Route for Affiliate Networks
 app.get('/api/postback/:platform', async (req, res) => {
-  const { platform } = req.params;
+  const secret = req.query.secret || req.query.key;
+  const platform = statePlatforms.find(p => p.id === req.params.platform || p.slug === req.params.platform);
+
+  if (!platform || !secret || secret !== (platform as any).postbackKey) {
+    return res.status(403).send('Forbidden');
+  }
+
+  const reqPlatform = req.params.platform;
   const { click_id, event, player, sum, currency, ...otherParams } = req.query;
 
   const postbackData = {
-    platform,
+    platform: reqPlatform,
     click_id: click_id || null,
     event: event || 'unknown',
     player_id: player || null,
@@ -328,7 +344,7 @@ app.get('/api/postback/:platform', async (req, res) => {
         ...postbackData,
         timestamp: FieldValue.serverTimestamp()
       });
-      console.log(`Saved S2S postback for ${platform} to Firestore.`);
+      console.log(`Saved S2S postback for ${reqPlatform} to Firestore.`);
     } else {
       console.log("Firestore DB not initialized, postback only in memory");
     }
@@ -354,11 +370,67 @@ app.get('/api/postback/:platform', async (req, res) => {
   }
 });
 
-// API: Get Full Public & Admin State
+// API: Get Public Data
 app.get('/api/data', (req, res) => {
   stateStats.totalVisits += 1;
   const geo = getGeoFromRequest(req);
 
+  const safePlatforms = statePlatforms.map(p => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    logoUrl: p.logoUrl,
+    rating: p.rating,
+    starRating: p.starRating,
+    badges: p.badges,
+    bonusText: p.bonusText,
+    promoCode: p.promoCode,
+    isFeatured: p.isFeatured,
+    featuredRank: p.featuredRank,
+    isActive: p.isActive,
+    category: p.category
+  }));
+
+  const safeConfig = {
+    heroHeadline: stateConfig.heroHeadline,
+    heroSubheading: stateConfig.heroSubheading,
+    topBannerTemplate: stateConfig.topBannerTemplate,
+    enableLuckyWheel: stateConfig.enableLuckyWheel,
+    enableLiveWinnersTicker: stateConfig.enableLiveWinnersTicker,
+    enableBotCloaking: stateConfig.enableBotCloaking,
+    enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
+    subPartnerHeadline: stateConfig.subPartnerHeadline,
+    featuredPrizePlatformId: stateConfig.featuredPrizePlatformId,
+    featuredPromoCode: stateConfig.featuredPromoCode,
+    wheelBonusText: stateConfig.wheelBonusText,
+    customCoupons: stateConfig.customCoupons,
+    approvedFeedbacks: stateConfig.approvedFeedbacks,
+    pushNotifications: stateConfig.pushNotifications,
+    abTestConfig: stateConfig.abTestConfig,
+    sidebarAdHtml: stateConfig.sidebarAdHtml,
+    telegramUrl: stateConfig.telegramUrl,
+    instagramUrl: stateConfig.instagramUrl,
+    tiktokUrl: stateConfig.tiktokUrl,
+    whatsappGroupUrl: stateConfig.whatsappGroupUrl,
+    youtubeUrl: stateConfig.youtubeUrl,
+    articles: stateConfig.articles,
+    footerColumns: stateConfig.footerColumns,
+    copyrightText: stateConfig.copyrightText,
+    footerDisclaimerText: stateConfig.footerDisclaimerText,
+    autoBlogSettings: stateConfig.autoBlogSettings
+  };
+
+  res.json({
+    platforms: safePlatforms,
+    config: safeConfig,
+    fakeWinners: stateFakeWinners,
+    geo
+  });
+});
+
+// API: Get Full Admin State
+app.get('/api/admin/data', verifyJwtToken, (req, res) => {
+  const geo = getGeoFromRequest(req);
   res.json({
     platforms: statePlatforms,
     config: stateConfig,
@@ -427,7 +499,7 @@ app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
 
 // API: Save Config (Protected)
 
-app.post('/api/admin/custom-pages', express.json(), (req, res) => {
+app.post('/api/admin/custom-pages', verifyJwtToken, express.json(), (req, res) => {
   const { pages } = req.body;
   if (Array.isArray(pages)) {
     stateCustomPages = pages;
@@ -882,7 +954,7 @@ async function startServer() {
   }
 
   
-app.post('/api/generate-article', async (req, res) => {
+app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
   try {
     const { topic, category, platformName, platformId } = req.body;
     

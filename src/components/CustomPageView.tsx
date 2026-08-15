@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React, { useEffect } from 'react';
 import { CustomPage, GamingPlatform, GlobalConfig } from '../types';
 import { ChevronRight } from 'lucide-react';
@@ -48,7 +49,12 @@ export const CustomPageView: React.FC<{
               <h1 className="text-3xl md:text-5xl font-black text-white mb-8">{page.title}</h1>
               <article 
                 className="prose prose-invert prose-slate max-w-none prose-a:text-emerald-400 hover:prose-a:text-emerald-300"
-                dangerouslySetInnerHTML={{ __html: page.content }} 
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(page.content || '', {
+                    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                  })
+                }} 
               />
             </div>
           </main>

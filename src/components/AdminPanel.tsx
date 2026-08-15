@@ -498,32 +498,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>Custom Pages</span>
             </div>
           </button>
-
-          {/* 👇 AI Auto-Blogger और Footer & Links Manager जोड़े गए हैं */}
-          <button
-            onClick={() => setActiveTab('articles')}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
-              activeTab === 'articles'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <Sparkles className="w-5 h-5 text-emerald-400" />
-            <span>AI Auto-Blogger</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('footer')}
-            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
-              activeTab === 'footer'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <Menu className="w-5 h-5 text-cyan-400" />
-            <span>Footer & Links Manager</span>
-          </button>
-
           <button 
             onClick={() => setActiveTab('subpartners')}
             className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between cursor-pointer transition-colors ${
@@ -565,6 +539,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           >
             <BarChart2 className="w-5 h-5" />
             <span>Analytics & Click Counter</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('articles')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
+              activeTab === 'articles'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+            <span>AI Auto-Blogger</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('footer')}
+            className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 cursor-pointer transition-colors ${
+              activeTab === 'footer'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <Menu className="w-5 h-5 text-cyan-400" />
+            <span>Footer & Links Manager</span>
           </button>
 
           <button
@@ -907,7 +905,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Platform Name</label>
                       <input
                         type="text"
-                        required
+                        
                         value={editingPlatform.name || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, name: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -918,7 +916,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Slug ID (for /go/slug)</label>
                       <input
                         type="text"
-                        required
+                        
                         value={editingPlatform.slug || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, slug: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -930,7 +928,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Raw Affiliate Redirect URL</label>
                       <input
                         type="url"
-                        required
+                        
                         value={editingPlatform.rawAffiliateUrl || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, rawAffiliateUrl: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -953,7 +951,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Logo Image URL</label>
                       <input
                         type="url"
-                        required
+                        
                         value={editingPlatform.logoUrl || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, logoUrl: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -964,7 +962,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Promo Code</label>
                       <input
                         type="text"
-                        required
+                        
                         value={editingPlatform.promoCode || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, promoCode: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -1010,7 +1008,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <label className="block text-slate-400 font-bold mb-1">Main Bonus Headline</label>
                       <input
                         type="text"
-                        required
+                        
                         value={editingPlatform.bonusText || ''}
                         onChange={e => setEditingPlatform({ ...editingPlatform, bonusText: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-medium focus:border-purple-500 outline-none"
@@ -1060,7 +1058,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           onClick={() => {
                             const name = editingPlatform.name || 'Gaming Platform';
                             const code = editingPlatform.promoCode || 'MAXBOOST500';
-                            const generatedTitle = truncateSeoText(`${name} Promo Code ${code} | 500% Deposit Bonus 2026`, 60);
+                                                        const generatedTitle = truncateSeoText(`${name} Promo Code ${code} | 500% Deposit Bonus 2026`, 60);
                             const generatedDesc = truncateSeoText(`Official verified promo code for ${name}. Use code ${code} during registration to claim 500% welcome bonus + 200 free spins instantly.`, 160);
                             setEditingPlatform({
                               ...editingPlatform,
@@ -1184,7 +1182,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {platforms.map((p, index) => (
+                                        {platforms.map((p, index) => (
                       <tr key={p.id} className="hover:bg-slate-800/30">
                         <td className="p-3">
                           <div className="flex flex-col items-center gap-1 w-6">
@@ -1299,7 +1297,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-slate-300 font-extrabold mb-1">Hero Main Headline</label>
                   <input
                     type="text"
-                    required
+                    
                     value={localConfig.heroHeadline}
                     onChange={e => setLocalConfig({ ...localConfig, heroHeadline: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-medium focus:border-purple-500 outline-none"
@@ -1310,7 +1308,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-slate-300 font-extrabold mb-1">Hero Subheading</label>
                   <textarea
                     rows={3}
-                    required
+                    
                     value={localConfig.heroSubheading}
                     onChange={e => setLocalConfig({ ...localConfig, heroSubheading: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-medium focus:border-purple-500 outline-none"
@@ -1321,7 +1319,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-slate-300 font-extrabold mb-1">Top Geo Country Banner Template</label>
                   <input
                     type="text"
-                    required
+                    
                     value={localConfig.topBannerTemplate}
                     onChange={e => setLocalConfig({ ...localConfig, topBannerTemplate: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-medium focus:border-purple-500 outline-none"
@@ -1378,6 +1376,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <div>
                       <span className="font-bold text-white text-xs block">Enable Ad-Bot Cloaking Filter</span>
                       <span className="text-[11px] text-slate-400">Detects Googlebot/FB crawler user-agents on /go/* routes and displays a safe blog review instead of direct redirect.</span>
+                      <span className="text-[11px] text-amber-500 font-bold block mt-1 uppercase">⚠️ Warning: Enabling this may violate Google Ads and Facebook Ads cloaking policies and lead to permanent account suspension.</span>
                     </div>
                     <input
                       type="checkbox"
@@ -1847,3 +1846,5 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     </div>
   );
 };
+
+

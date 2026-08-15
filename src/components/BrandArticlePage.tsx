@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React, { useEffect, useMemo } from 'react';
 import Markdown from 'react-markdown';
 import { GamingPlatform, UserGeo, CustomPage, GlobalConfig } from '../types';
@@ -21,7 +22,7 @@ export const BrandArticlePage: React.FC<{
   
   // Find platform by slug (basic matching)
   const platformNameMatch = slug.split('-')[0].toLowerCase(); // e.g. "1win" from "1win-promo-code-india"
-  const platform = platforms.find(p => p.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes(platformNameMatch.replace(/[^a-z0-9]/g, ''))) || platforms.find(p => p.isActive) || platforms[0];
+  const platform = platforms.find(p => p.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes((platformNameMatch || '').replace(/[^a-z0-9]/g, ''))) || platforms.find(p => p.isActive) || platforms[0];
   
   const geoContext = getGeoContext(geo.countryCode);
   const localizedBonus = formatLocalizedBonus(platform?.bonusText || platform?.bonusTitle || '', language);
@@ -97,13 +98,28 @@ export const BrandArticlePage: React.FC<{
 
               <article className="prose prose-invert prose-slate prose-lg max-w-none prose-h4:text-amber-300 prose-h4:font-bold prose-h4:text-2xl prose-h4:mt-10 prose-h4:mb-4 prose-p:text-slate-300 prose-p:leading-relaxed prose-strong:text-white">
                 <h4>{content.promoTitle}</h4>
-                <p dangerouslySetInnerHTML={{ __html: content.promoContent }} />
+                <p dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(content.promoContent || '', {
+                    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                  })
+                }} />
                 
                 <h4>{content.paymentTitle}</h4>
-                <p dangerouslySetInnerHTML={{ __html: content.paymentContent }} />
+                <p dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(content.paymentContent || '', {
+                    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                  })
+                }} />
                 
                 <h4>{content.legalTitle}</h4>
-                <p dangerouslySetInnerHTML={{ __html: content.legalContent }} />
+                <p dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(content.legalContent || '', {
+                    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'h4'],
+                    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+                  })
+                }} />
               </article>
 
               {/* CTA Area */}

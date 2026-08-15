@@ -100,7 +100,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
 
         {/* Header Urgency Badge */}
         <div className="flex items-center justify-between gap-2 mb-4">
-          <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 font-black text-xs border border-red-500/40 flex items-center gap-1.5 animate-pulse">
+          <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 font-black text-xs border border-red-500/40 flex items-center gap-1.5 ">
             <ShieldAlert className="w-4 h-4 text-red-400" />
             WAIT! DON'T LEAVE YOUR BONUS BEHIND!
           </span>
@@ -114,11 +114,11 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
         {/* Hero Card Content */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
-            <img
+            <img loading="lazy"
               src={topPlatform.logoUrl}
               alt={topPlatform.name}
               className="h-12 object-contain"
-              loading="lazy"
+              
             />
           </div>
 

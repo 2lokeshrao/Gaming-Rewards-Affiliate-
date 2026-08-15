@@ -124,7 +124,7 @@ export const SeoContentSection: React.FC<SeoContentSectionProps> = ({
       <div id="seo-compare-table" className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl mb-10 scroll-mt-24">
         <div className="p-4 sm:p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
-            <Flame className="w-5 h-5 text-amber-400 animate-pulse" />
+            <Flame className="w-5 h-5 text-amber-400 " />
             <span>2026 Gaming & Custom Coupon Search Index</span>
           </h3>
           <span className="text-xs text-amber-400 font-bold bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">

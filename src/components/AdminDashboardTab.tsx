@@ -390,12 +390,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                     {/* Platform Name & Logo */}
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
-                        <img
+                        <img loading="lazy"
                           src={platformObj?.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=80'}
                           alt={panel.platformName}
                           width="32"
                           height="32"
-                          loading="lazy"
+                          
                           decoding="async"
                           className="w-8 h-8 rounded-lg object-cover border border-slate-700 bg-slate-950"
                         />
@@ -409,7 +409,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                     {/* API Status */}
                     <td className="p-3.5">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 "></span>
                         Connected
                       </span>
                     </td>

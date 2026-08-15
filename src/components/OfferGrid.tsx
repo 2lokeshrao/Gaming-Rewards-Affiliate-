@@ -122,7 +122,7 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
                   {/* Conditional HOT badge for high CTR / popular offers */}
                   {(p.clicksCount > 500) && (
                     <span className="relative flex items-center justify-center ml-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-md bg-red-500 opacity-40"></span>
+                      <span className=" absolute inline-flex h-full w-full rounded-md bg-red-500 opacity-40"></span>
                       <span className="relative bg-gradient-to-r from-red-600 to-rose-600 border border-red-400 text-white text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1 shadow-[0_0_10px_rgba(225,29,72,0.5)]">
                         <Flame className="w-3 h-3 text-white fill-white" />
                         HOT

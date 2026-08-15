@@ -33,7 +33,7 @@ export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrol
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/50 text-cyan-300 text-xs sm:text-sm font-black mb-6 shadow-xl shadow-cyan-500/10 tracking-widest uppercase">
             <Terminal className="w-4 h-4 text-cyan-400" />
             <span>CYBER NEON VIP REWARDS HUB [2026 EDITION]</span>
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-cyan-400 " />
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12] mb-6">
@@ -102,7 +102,7 @@ export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrol
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/40 text-amber-300 text-xs sm:text-sm font-semibold mb-6 shadow-lg shadow-amber-500/5">
           <Award className="w-4 h-4 text-amber-400" />
           <span>OFFICIAL 2026 VERIFIED GAMING REWARDS HUB</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping ml-1" />
+          <span className="w-2 h-2 rounded-full bg-emerald-500  ml-1" />
         </div>
 
         {/* Headline */}

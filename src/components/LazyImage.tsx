@@ -12,13 +12,13 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
     <div className={`relative overflow-hidden shrink-0 bg-slate-800 ${className.replace(/object-cover|shrink-0|bg-slate-800/g, '').trim()}`}>
       {/* Low quality placeholder or blur background */}
       {!isLoaded && (
-        <div className="absolute inset-0 bg-slate-800 animate-pulse border border-slate-700/50 rounded-[inherit]" />
+        <div className="absolute inset-0 bg-slate-800  border border-slate-700/50 rounded-[inherit]" />
       )}
       
-      <img
+      <img loading="lazy"
         src={src}
         alt={alt}
-        loading="lazy"
+        
         decoding="async"
         onLoad={() => setIsLoaded(true)}
         className={`w-full h-full object-cover transition-opacity duration-500 rounded-[inherit] ${

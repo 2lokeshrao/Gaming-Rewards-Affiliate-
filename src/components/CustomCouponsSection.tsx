@@ -41,7 +41,7 @@ export const CustomCouponsSection: React.FC<CustomCouponsSectionProps> = ({ coup
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
               <span>Featured Custom Promotional Coupons</span>
-              <Flame className="w-6 h-6 text-amber-400 animate-pulse" />
+              <Flame className="w-6 h-6 text-amber-400 " />
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
               Exclusive promo codes for partner brands, cricket tournaments, and special casino rewards.

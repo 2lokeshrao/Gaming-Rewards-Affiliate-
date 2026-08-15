@@ -84,7 +84,7 @@ export const BrandArticlePage: React.FC<{
           <main className="lg:col-span-3">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-10 shadow-2xl mb-10">
               <div className="flex flex-col md:flex-row items-center gap-6 mb-8 border-b border-slate-800 pb-8 text-center md:text-left">
-                <img src={platform.logoUrl} alt={platform.name} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-slate-800 bg-slate-950 object-cover shadow-xl" />
+                <img loading="lazy" src={platform.logoUrl} alt={platform.name} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-slate-800 bg-slate-950 object-cover shadow-xl" />
                 <div>
                   <h1 className="text-3xl md:text-5xl font-black text-white mb-2">{platform.name} Review & Guide</h1>
                   <p className="text-emerald-400 font-bold flex items-center justify-center md:justify-start gap-1 mt-2">

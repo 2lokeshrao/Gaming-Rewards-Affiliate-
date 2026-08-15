@@ -117,7 +117,7 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
 
               {/* Center Hub Button */}
               <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-slate-950 border-2 border-amber-400 flex items-center justify-center shadow-lg z-10">
-                <Trophy className="w-7 h-7 text-amber-400 animate-pulse" />
+                <Trophy className="w-7 h-7 text-amber-400 " />
               </div>
             </div>
 

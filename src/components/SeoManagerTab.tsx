@@ -187,7 +187,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
                 : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800'
             }`}
           >
-            <img src={p.logoUrl} alt={p.name} className="w-5 h-5 rounded object-cover" />
+            <img loading="lazy" src={p.logoUrl} alt={p.name} className="w-5 h-5 rounded object-cover" />
             <span>{p.name}</span>
             {p.metaTitle ? (
               <span className="w-2 h-2 rounded-full bg-emerald-400" title="SEO Customized" />
@@ -204,7 +204,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
           <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                <img src={selectedPlatform.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                <img  src={selectedPlatform.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover" />
                 <div>
                   <h3 className="font-extrabold text-sm text-white">{selectedPlatform.name} SEO Profile</h3>
                   <span className="text-[11px] text-slate-400 font-mono">ID: {selectedPlatform.id}</span>
@@ -221,7 +221,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
                 }`}
                 title="Generate high-converting SEO meta tags automatically using AI"
               >
-                <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-pulse text-purple-500' : 'text-purple-400'}`} />
+                <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? ' text-purple-500' : 'text-purple-400'}`} />
                 <span>{isGenerating ? 'Generating AI...' : 'Auto-Generate Tags'}</span>
               </button>
             </div>

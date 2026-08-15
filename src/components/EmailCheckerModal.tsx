@@ -124,7 +124,7 @@ export const EmailCheckerModal: React.FC<EmailCheckerModalProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                     }`}
                   >
-                    <img src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded-md object-cover" />
+                    <img loading="lazy" src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded-md object-cover" />
                     <span className="font-extrabold text-xs truncate">{p.name}</span>
                   </button>
                 ))}

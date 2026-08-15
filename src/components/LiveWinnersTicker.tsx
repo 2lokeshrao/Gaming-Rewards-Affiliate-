@@ -52,7 +52,7 @@ export const LiveWinnersTicker: React.FC<LiveWinnersTickerProps> = ({ initialWin
         <div className="flex-1 pr-2">
           <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
             <span className="flex items-center gap-1 text-emerald-400 font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" /> LIVE PAYOUT
+              <span className="w-2 h-2 rounded-full bg-emerald-400  inline-block" /> LIVE PAYOUT
             </span>
             <span>{currentWinner.timeAgo}</span>
           </div>

@@ -711,7 +711,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <div key={platform.id} className="bg-slate-950 border border-slate-800 hover:border-purple-500/50 rounded-2xl p-4 sm:p-5 shadow-xl transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
                         <div className="flex items-center gap-3">
-                          <img
+                          <img loading="lazy"
                             src={platform.logoUrl || 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=100'}
                             alt={platform.name}
                             className="w-10 h-10 rounded-xl object-cover border border-slate-700 bg-slate-900"
@@ -724,7 +724,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 "></span>
                             API Active
                           </span>
                         </div>
@@ -1206,7 +1206,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           </div>
                         </td>
                         <td className="p-3 flex items-center gap-3">
-                          <img src={p.logoUrl} alt={p.name} className="w-9 h-9 rounded-lg object-cover bg-slate-800" />
+                          <img  src={p.logoUrl} alt={p.name} className="w-9 h-9 rounded-lg object-cover bg-slate-800" />
                           <div>
                             <span className="font-extrabold text-white text-sm block">{p.name}</span>
                             <span className="text-[10px] text-purple-400 font-mono">/go/{p.slug}</span>

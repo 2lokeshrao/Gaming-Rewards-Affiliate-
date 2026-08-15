@@ -51,9 +51,9 @@ export const TopBanner: React.FC<TopBannerProps> = ({ geo, bannerTemplate, activ
     const isRed = secondsLeft <= 180; // < 3m
 
     const bannerBgClass = isRed
-      ? 'bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 border-red-500 animate-pulse'
+      ? 'bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 border-red-500 '
       : isYellow
-      ? 'bg-gradient-to-r from-amber-950 via-slate-950 to-amber-900 border-amber-500/80 animate-pulse'
+      ? 'bg-gradient-to-r from-amber-950 via-slate-950 to-amber-900 border-amber-500/80 '
       : 'bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-900 border-emerald-500/70';
 
     const timerBoxClass = isRed
@@ -105,7 +105,7 @@ export const TopBanner: React.FC<TopBannerProps> = ({ geo, bannerTemplate, activ
               target="_blank"
               rel="noreferrer"
               className={`px-3.5 py-1.5 rounded-lg text-slate-950 font-black text-xs uppercase shadow-lg cursor-pointer transition-transform hover:scale-105 ${
-                isRed ? 'bg-red-500 hover:bg-red-400 text-white animate-pulse' : 'bg-amber-500 hover:bg-amber-400'
+                isRed ? 'bg-red-500 hover:bg-red-400 text-white ' : 'bg-amber-500 hover:bg-amber-400'
               }`}
             >
               FINISH REGISTRATION NOW

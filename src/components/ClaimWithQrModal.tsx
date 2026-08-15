@@ -53,7 +53,7 @@ export const ClaimWithQrModal: React.FC<ClaimWithQrModalProps> = ({
           </div>
 
           <div className="flex items-center justify-center gap-3 pt-2">
-            <img
+            <img loading="lazy"
               src={platform.logoUrl}
               alt={platform.name}
               className="w-10 h-10 rounded-xl object-cover border border-slate-700 bg-slate-950 shadow-md"

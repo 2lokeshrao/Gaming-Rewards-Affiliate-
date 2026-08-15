@@ -50,7 +50,7 @@ export const Sidebar: React.FC<{
                   onClick={(e) => handleNav(e, url)}
                   className="group flex items-center gap-3 p-2 hover:bg-slate-800 rounded-lg transition-colors"
                 >
-                  <img src={p.logoUrl} alt={p.name} className="w-10 h-10 rounded-full border-2 border-slate-700 object-cover" />
+                  <img loading="lazy" src={p.logoUrl} alt={p.name} className="w-10 h-10 rounded-full border-2 border-slate-700 object-cover" />
                   <div className="flex-1">
                     <h4 className="text-slate-200 font-bold text-sm group-hover:text-amber-400 transition-colors">{p.name}</h4>
                     <p className="text-xs text-emerald-400 font-bold">{p.bonusText || p.bonusTitle}</p>

@@ -68,7 +68,7 @@ export const PlatformFeedbackModal: React.FC<PlatformFeedbackModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <img
+          <img loading="lazy"
             src={platform.logoUrl}
             alt={platform.name}
             className="w-12 h-12 rounded-xl object-cover border border-slate-700 bg-slate-950"

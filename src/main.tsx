@@ -6,6 +6,11 @@ import { LanguageProvider } from './i18n/LanguageContext';
 
 // Safely suppress benign third-party browser extension errors (e.g. MetaMask, Web3 wallets, Chrome extensions)
 if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', () => {
+    // Reload page if a new deployment removed old hashed chunk files
+    window.location.reload();
+  });
+
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason?.message || event.reason?.toString() || '';
     if (

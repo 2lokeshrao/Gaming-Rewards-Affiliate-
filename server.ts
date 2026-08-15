@@ -899,25 +899,6 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
   }
 });
 
-// Vite / Static Files Setup
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath, { maxAge: '1y' }));
-    app.get('*', (req, res) => {
-      res.set('Cache-Control', 'no-cache');
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
-
-  
 app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
   try {
     const { topic, category, platformName, platformId } = req.body;
@@ -970,6 +951,48 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to generate article: ' + error.message });
   }
 });
+
+// Vite / Static Files Setup
+async function startServer() {
+  if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa'
+    });
+    app.use(vite.middlewares);
+  } else {
+    const fs = await import('fs');
+    const distPath = fs.existsSync(path.join(process.cwd(), 'dist'))
+      ? path.join(process.cwd(), 'dist')
+      : path.join(__dirname);
+
+    // Serve static files with proper cache headers
+    app.use(express.static(distPath, {
+      maxAge: '1y',
+      immutable: true,
+      index: false,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        }
+      }
+    }));
+
+    // Prevent missing static assets from falling through to HTML index
+    app.use('/assets', (req, res) => {
+      res.status(404).send('Asset not found');
+    });
+
+    app.get('*', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
 
 // ----------------------------------------------------------------------

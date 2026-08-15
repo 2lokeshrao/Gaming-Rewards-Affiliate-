@@ -6,11 +6,10 @@ interface HeroProps {
   headline: string;
   subheading: string;
   onScrollToOffers: () => void;
-  onOpenEmailChecker?: () => void;
   abTestConfig?: AbTestConfig;
 }
 
-export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrollToOffers, onOpenEmailChecker, abTestConfig }) => {
+export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrollToOffers, abTestConfig }) => {
   const isVariantB = abTestConfig?.enabled && abTestConfig.heroDesign === 'variant_b';
   const buttonColor = abTestConfig?.buttonColor || 'amber';
 
@@ -75,15 +74,7 @@ export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrol
               <ChevronDown className="w-5 h-5 animate-bounce ml-1" />
             </button>
 
-            {onOpenEmailChecker && (
-              <button
-                onClick={onOpenEmailChecker}
-                className="w-full sm:w-auto px-6 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-950/40"
-              >
-                <Mail className="w-5 h-5 text-cyan-400" />
-                <span>CHECK EMAIL ELIGIBILITY</span>
-              </button>
-            )}
+
           </div>
         </div>
       </section>
@@ -155,15 +146,7 @@ export const HeroSection: React.FC<HeroProps> = ({ headline, subheading, onScrol
             <ChevronDown className="w-5 h-5 animate-bounce ml-1" />
           </button>
 
-          {onOpenEmailChecker && (
-            <button
-              onClick={onOpenEmailChecker}
-              className="w-full sm:w-auto px-6 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/40 hover:border-purple-500 text-purple-300 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-950/40"
-            >
-              <Mail className="w-5 h-5 text-purple-400" />
-              <span>CHECK EMAIL ELIGIBILITY</span>
-            </button>
-          )}
+
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">

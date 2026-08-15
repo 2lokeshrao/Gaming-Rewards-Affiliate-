@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
-import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
+import { initialGlobalConfig, initialPlatforms } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
@@ -75,7 +75,6 @@ try {
 // In-Memory Database State
 let statePlatforms: GamingPlatform[] = [...initialPlatforms];
 let stateConfig: GlobalConfig = { ...initialGlobalConfig };
-let stateFakeWinners = [...initialFakeWinners];
 
 let stateSubPartners: SubPartnerApplication[] = [
   {
@@ -108,7 +107,7 @@ import fs from 'fs';
 const DB_FILE = path.join(process.cwd(), 'database.json');
 
 function saveState() {
-  const data = { statePlatforms, stateConfig, stateFakeWinners, stateSubPartners };
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
   } catch (e) {
@@ -121,7 +120,6 @@ try {
     const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     if (data.statePlatforms) statePlatforms = data.statePlatforms;
     if (data.stateConfig) stateConfig = data.stateConfig;
-    if (data.stateFakeWinners) stateFakeWinners = data.stateFakeWinners;
     if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
     console.log("Loaded state from database.json");
   }
@@ -208,6 +206,7 @@ function verifyJwtToken(req: Request, res: Response, next: Function) {
   }
 
   const token = authHeader.split(' ')[1];
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded;
@@ -298,60 +297,6 @@ const handleAdminLogin = (req: Request, res: Response) => {
 app.post('/api/auth/login', adminLoginRateLimiter, handleAdminLogin);
 app.post('/api/admin/login', adminLoginRateLimiter, handleAdminLogin);
 
-// API: Email Eligibility & Duplicate Check
-app.post('/api/check-email', (req, res) => {
-  const { email, platformId } = req.body;
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ error: 'Valid email address is required' });
-  }
-
-    if (req.body.forceMarkRegistered) {
-    return res.status(403).json({ error: 'Manual registration marking is disabled' });
-  }
-  const cleanEmail = email.trim().toLowerCase();
-  const platform = statePlatforms.find(p => p.id === platformId) || statePlatforms[0];
-
-  const registeredList = stateConfig.registeredEmailsList || [
-    "user@example.com",
-    "test@gmail.com",
-    "admin@1win.com"
-  ];
-
-  // Check if email exists in list or matches keywords/checkedEmails
-  const isExplicitlyRegistered = registeredList.some(registered =>
-    cleanEmail === registered.toLowerCase() || cleanEmail.includes(registered.toLowerCase())
-  );
-
-  const hasExisting = isExplicitlyRegistered ||
-    checkedEmails.has(cleanEmail) ||
-    cleanEmail.includes('old') ||
-    cleanEmail.includes('1win') ||
-    cleanEmail.includes('user') ||
-    cleanEmail.includes('exist') ||
-    cleanEmail.includes('lokesh');
-
-  checkedEmails.add(cleanEmail);
-
-  if (hasExisting) {
-    return res.json({
-      email: cleanEmail,
-      hasExistingAccount: true,
-      platformName: platform?.name || 'Gaming Platform',
-      message: `An account associated with '${cleanEmail}' is already registered on ${platform?.name || 'this platform'}.`,
-      recommendedAction: `To guarantee your 500% Welcome Bonus & 200 Free Spins, please create your account using a NEW EMAIL ADDRESS or fresh mobile number.`
-    });
-  } else {
-    return res.json({
-      email: cleanEmail,
-      hasExistingAccount: false,
-      platformName: platform?.name || 'Gaming Platform',
-      message: `Good news! '${cleanEmail}' is 100% fresh and eligible for the maximum 500% Welcome Bonus package.`,
-      recommendedAction: `Proceed to official registration now with promo code ${platform?.promoCode || 'VIPBONUS500'}.`
-    });
-  }
-});
-
-
 // API: S2S Postback (Webhook) Route for Affiliate Networks
 app.get('/api/postback/:platform', async (req, res) => {
   const secret = req.query.secret || req.query.key;
@@ -375,6 +320,7 @@ app.get('/api/postback/:platform', async (req, res) => {
     receivedAt: new Date().toISOString()
   };
 
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     if (firestoreDb) {
       await firestoreDb.collection('s2s_postbacks').add({
@@ -433,7 +379,6 @@ app.get('/api/data', (req, res) => {
     heroSubheading: stateConfig.heroSubheading,
     topBannerTemplate: stateConfig.topBannerTemplate,
     enableLuckyWheel: stateConfig.enableLuckyWheel,
-    enableLiveWinnersTicker: stateConfig.enableLiveWinnersTicker,
     enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
     subPartnerHeadline: stateConfig.subPartnerHeadline,
     featuredPrizePlatformId: stateConfig.featuredPrizePlatformId,
@@ -459,7 +404,6 @@ app.get('/api/data', (req, res) => {
   res.json({
     platforms: safePlatforms,
     config: safeConfig,
-    fakeWinners: stateFakeWinners,
     geo
   });
 });
@@ -471,7 +415,6 @@ app.get('/api/admin/data', verifyJwtToken, (req, res) => {
     platforms: statePlatforms,
     config: stateConfig,
     stats: stateStats,
-    fakeWinners: stateFakeWinners,
     logs: stateTrackLogs,
     subPartners: stateSubPartners,
     customPages: stateCustomPages,
@@ -839,6 +782,7 @@ injectSitemapRoute(app);
 
 // Gemini SEO Generation API
 app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const { platformName, existingDescription } = req.body;
     
@@ -909,6 +853,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
 });
 
 app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const { topic, category, platformName, platformId } = req.body;
     
@@ -1049,6 +994,7 @@ const autoblogInterval = setInterval(async () => {
   const { categories, topics } = stateConfig.autoBlogSettings;
   if (!categories || categories.length === 0) return;
   
+  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     

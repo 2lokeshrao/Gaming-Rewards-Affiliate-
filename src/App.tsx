@@ -1,10 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, WinnerTickerItem, UserGeo, SubPartnerApplication } from './types';
+import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, UserGeo, SubPartnerApplication } from './types';
 import { injectFaqSchemaInHead, injectGoogleSiteVerification, injectSeoTags } from './utils/seo';
 import { TopBanner } from './components/TopBanner';
 import { HeroSection } from './components/HeroSection';
 import { SocialMediaBar } from './components/SocialMediaBar';
-import { LiveWinnersTicker } from './components/LiveWinnersTicker';
 import { Sparkles, Users, Mail } from 'lucide-react';
 import { TopLoadingBar } from './components/TopLoadingBar';
 
@@ -44,7 +43,6 @@ const PaymentGuideSection = lazy(() => import('./components/PaymentGuideSection'
 const CustomCouponsSection = lazy(() => import('./components/CustomCouponsSection').then(m => ({ default: m.CustomCouponsSection })));
 const LuckyWheelModal = lazy(() => import('./components/LuckyWheelModal').then(m => ({ default: m.LuckyWheelModal })));
 const SubPartnerModal = lazy(() => import('./components/SubPartnerModal').then(m => ({ default: m.SubPartnerModal })));
-const EmailCheckerModal = lazy(() => import('./components/EmailCheckerModal').then(m => ({ default: m.EmailCheckerModal })));
 const ClaimWithQrModal = lazy(() => import('./components/ClaimWithQrModal').then(m => ({ default: m.ClaimWithQrModal })));
 const PlatformFeedbackModal = lazy(() => import('./components/PlatformFeedbackModal').then(m => ({ default: m.PlatformFeedbackModal })));
 const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m => ({ default: m.AdminLoginModal })));
@@ -71,7 +69,6 @@ export default function App() {
 
   const [config, setConfig] = useState<GlobalConfig | null>(null);
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
-  const [fakeWinners, setFakeWinners] = useState<WinnerTickerItem[]>([]);
   const [logs, setLogs] = useState<TrackLog[]>([]);
   const [customPages, setCustomPages] = useState<CustomPage[]>([]);
   const [subPartners, setSubPartners] = useState<SubPartnerApplication[]>([]);
@@ -109,7 +106,6 @@ export default function App() {
   // Modals
   const [showWheelModal, setShowWheelModal] = useState(false);
   const [showSubPartnerModal, setShowSubPartnerModal] = useState(false);
-  const [showEmailCheckerModal, setShowEmailCheckerModal] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [selectedQrPlatform, setSelectedQrPlatform] = useState<GamingPlatform | null>(null);
   const [selectedFeedbackPlatform, setSelectedFeedbackPlatform] = useState<GamingPlatform | null>(null);
@@ -185,7 +181,6 @@ export default function App() {
         const data = await res.json();
         setPlatforms(data.platforms);
         setConfig(data.config);
-        setFakeWinners(data.fakeWinners);
         
         if (data.stats) setStats(data.stats);
         if (data.logs) setLogs(data.logs);
@@ -677,7 +672,6 @@ export default function App() {
           headline={formatLocalizedBonus(config.heroHeadline, language)}
           subheading={formatLocalizedBonus(config.heroSubheading, language)}
           onScrollToOffers={scrollToOffers}
-          onOpenEmailChecker={() => setShowEmailCheckerModal(true)}
           abTestConfig={config.abTestConfig}
         />
 
@@ -694,14 +688,6 @@ export default function App() {
 
         {/* Floating Action Launchers */}
         <div className="max-w-7xl mx-auto px-4 my-6 flex flex-wrap items-center justify-center gap-3">
-          <button
-            onClick={() => setShowEmailCheckerModal(true)}
-            className="px-6 py-3 rounded-full bg-slate-900 border border-purple-500/50 hover:border-purple-400 text-purple-300 font-extrabold text-xs sm:text-sm shadow-lg shadow-purple-950/40 flex items-center gap-2 cursor-pointer transform hover:scale-105 transition-transform"
-          >
-            <Mail className="w-4 h-4 text-purple-400" />
-            <span>{t('hero.checkEmail')}</span>
-          </button>
-
           {config.enableLuckyWheel && (
             <button
               onClick={() => setShowWheelModal(true)}
@@ -781,14 +767,6 @@ export default function App() {
 
       {/* Pop-up Modals & Floating Components */}
       <Suspense fallback={null}>
-        {showEmailCheckerModal && (
-          <EmailCheckerModal
-            platforms={platforms}
-            onClose={() => setShowEmailCheckerModal(false)}
-            onProceedToClaim={handleClaimClick}
-          />
-        )}
-
         {showWheelModal && (
           <LuckyWheelModal
             platforms={platforms}
@@ -869,12 +847,6 @@ export default function App() {
         <span className="text-xs uppercase tracking-wider">{t('nav.getApp')}</span>
       </button>
 
-      {/* Live Winners Toast Ticker */}
-      <LiveWinnersTicker
-        initialWinners={fakeWinners}
-        enabled={config.enableLiveWinnersTicker}
-      />
-      
       <ToastNotification />
     </div>
   );

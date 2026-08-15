@@ -1503,19 +1503,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                   <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                     <div>
-                      <span className="font-bold text-white text-xs block">Enable Live Winners Ticker</span>
-                      <span className="text-[11px] text-slate-400">Shows bottom-left FOMO toast notifications of recent big winners.</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={localConfig.enableLiveWinnersTicker}
-                      onChange={e => setLocalConfig({ ...localConfig, enableLiveWinnersTicker: e.target.checked })}
-                      className="w-5 h-5 rounded accent-purple-600"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <div>
                       <span className="font-bold text-white text-xs block">Enable Ad-Bot Cloaking Filter</span>
                       <span className="text-[11px] text-slate-400">Detects Googlebot/FB crawler user-agents on /go/* routes and displays a safe blog review instead of direct redirect.</span>
                       <span className="text-[11px] text-amber-500 font-bold block mt-1 uppercase">⚠️ Warning: Enabling this may violate Google Ads and Facebook Ads cloaking policies and lead to permanent account suspension.</span>

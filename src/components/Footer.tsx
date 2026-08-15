@@ -132,35 +132,18 @@ export const Footer: React.FC<FooterProps> = ({
               {t('footer.refer')}
             </button>
 
-            {/* Stealth Admin Access - If hideAdminLink is true, render a subtle lock icon button */}
-            {config.hideAdminLink ? (
-              <button
-                onClick={() => {
-                  if (adminToken) {
-                    setViewingAdmin(true);
-                  } else {
-                    setShowAdminLogin(true);
-                  }
-                }}
-                className="opacity-20 hover:opacity-100 transition-opacity p-1 text-slate-600 hover:text-amber-400 cursor-pointer"
-                title="Secret Admin Access (or press Ctrl+Shift+A)"
-              >
-                <Lock className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  if (adminToken) {
-                    setViewingAdmin(true);
-                  } else {
-                    setShowAdminLogin(true);
-                  }
-                }}
-                className="text-slate-400 hover:text-amber-400 underline flex items-center gap-1 cursor-pointer"
-              >
-                <Lock className="w-3 h-3" /> {t('admin.stealth')}
-              </button>
-            )}
+            {/* Stealth Admin Access - Completely invisible but clickable for mobile admins */}
+            <button
+              onClick={() => {
+                if (adminToken) {
+                  setViewingAdmin(true);
+                } else {
+                  setShowAdminLogin(true);
+                }
+              }}
+              className="w-10 h-10 opacity-0 bg-transparent cursor-default"
+              aria-hidden="true"
+            />
           </div>
       </footer>
   );

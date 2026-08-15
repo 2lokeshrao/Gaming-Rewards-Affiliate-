@@ -3,11 +3,12 @@ import { GamingPlatform } from '../types';
 import { Search, Sparkles, CheckCircle2, Save, Globe, Eye, RefreshCw, Copy, Check, Info } from 'lucide-react';
 
 interface SeoManagerTabProps {
+  token: string;
   platforms: GamingPlatform[];
   onSavePlatforms: (updated: GamingPlatform[]) => void;
 }
 
-export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSavePlatforms }) => {
+export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSavePlatforms, token }) => {
   const [selectedPlatformId, setSelectedPlatformId] = useState<string>(platforms[0]?.id || '');
   const [localPlatforms, setLocalPlatforms] = useState<GamingPlatform[]>(platforms);
   const [savedToast, setSavedToast] = useState(false);
@@ -44,7 +45,7 @@ export const SeoManagerTab: React.FC<SeoManagerTabProps> = ({ platforms, onSaveP
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('affiliate_admin_token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
           platformName: selectedPlatform.name,

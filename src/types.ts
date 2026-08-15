@@ -117,7 +117,6 @@ export interface GlobalConfig {
   topBannerTemplate: string;
   enableLuckyWheel: boolean;
   enableLiveWinnersTicker: boolean;
-  enableBotCloaking: boolean;
   enableSubPartnerProgram: boolean;
   subPartnerHeadline: string;
   featuredPrizePlatformId: string;

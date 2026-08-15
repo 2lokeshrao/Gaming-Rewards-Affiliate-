@@ -12,6 +12,7 @@ import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerAppli
 import rateLimit from 'express-rate-limit';
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
@@ -94,6 +95,32 @@ let stateSubPartners: SubPartnerApplication[] = [
     appliedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
   }
 ];
+
+import fs from 'fs';
+const DB_FILE = path.join(process.cwd(), 'database.json');
+
+function saveState() {
+  const data = { statePlatforms, stateConfig, stateFakeWinners, stateSubPartners };
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error("Save state error:", e);
+  }
+}
+
+try {
+  if (fs.existsSync(DB_FILE)) {
+    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    if (data.statePlatforms) statePlatforms = data.statePlatforms;
+    if (data.stateConfig) stateConfig = data.stateConfig;
+    if (data.stateFakeWinners) stateFakeWinners = data.stateFakeWinners;
+    if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+    console.log("Loaded state from database.json");
+  }
+} catch (e) {
+  console.error("Load state error:", e);
+}
+
 
 let stateCustomPages: any[] = [];
 let stateStats: AnalyticsStats = {
@@ -270,6 +297,9 @@ app.post('/api/check-email', (req, res) => {
     return res.status(400).json({ error: 'Valid email address is required' });
   }
 
+    if (req.body.forceMarkRegistered) {
+    return res.status(403).json({ error: 'Manual registration marking is disabled' });
+  }
   const cleanEmail = email.trim().toLowerCase();
   const platform = statePlatforms.find(p => p.id === platformId) || statePlatforms[0];
 
@@ -397,7 +427,6 @@ app.get('/api/data', (req, res) => {
     topBannerTemplate: stateConfig.topBannerTemplate,
     enableLuckyWheel: stateConfig.enableLuckyWheel,
     enableLiveWinnersTicker: stateConfig.enableLiveWinnersTicker,
-    enableBotCloaking: stateConfig.enableBotCloaking,
     enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
     subPartnerHeadline: stateConfig.subPartnerHeadline,
     featuredPrizePlatformId: stateConfig.featuredPrizePlatformId,
@@ -491,7 +520,7 @@ app.patch('/api/admin/sub-partners/:id', verifyJwtToken, (req, res) => {
 app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
   const { platforms } = req.body;
   if (Array.isArray(platforms)) {
-    statePlatforms = platforms;
+    statePlatforms = platforms; saveState();
     return res.json({ success: true, platforms: statePlatforms });
   }
   return res.status(400).json({ error: 'Invalid platform data array' });
@@ -610,79 +639,6 @@ app.get('/go/:slug', (req, res) => {
     ` : ''}
     ${customScript ? customScript : ''}
   `;
-
-  // CLOAKING LOGIC: If an Ad Bot / Crawler is detected and cloaking is ON -> Serve safe educational review page with FAQ Schema
-  if (isBot && stateConfig.enableBotCloaking) {
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": `Is ${platform.name} legit and safe to play?`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": `Yes, ${platform.name} is an officially licensed and verified platform featuring SSL security encryption and fair RNG gaming certifications.`
-          }
-        },
-        {
-          "@type": "Question",
-          "name": `What is the verified promo code for ${platform.name}?`,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": `The verified official promo code for ${platform.name} is ${platform.promoCode || 'MAXBOOST500'}, granting 500% welcome deposit bonus + 200 free spins.`
-          }
-        }
-      ]
-    };
-
-    return res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>${platform.name} - Official Review, Legit Status & Promo Code 2026</title>
-        <script type="application/ld+json">${JSON.stringify(faqSchema)}</script>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
-          h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-          .badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-          .card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0; }
-          .faq-item { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; }
-        </style>
-      </head>
-      <body>
-        <h1>${platform.name} Overview, Legit Status & Compliance</h1>
-        <p><span class="badge">Verified Official Brand Review</span></p>
-        <div class="card">
-          <h2>About ${platform.name}</h2>
-          <p>This is an official informational summary page regarding ${platform.name}. It provides software details, security compliance credentials, and customer assistance channels.</p>
-          <p><strong>Is ${platform.name} Legit?</strong> Yes, ${platform.name} operates with valid international gaming certification, instant local withdrawals (UPI, Pix, Crypto), and 24/7 support.</p>
-          <p><strong>Official Promo Code:</strong> <code>${platform.promoCode || 'MAXBOOST500'}</code></p>
-          <p><strong>Rating:</strong> ${platform.rating} / 10</p>
-          <p><strong>Features:</strong> ${platform.badges.join(', ')}</p>
-        </div>
-
-        <div class="card">
-          <h3>Frequently Asked Questions (FAQ)</h3>
-          <div class="faq-item">
-            <h4>Is ${platform.name} legit and safe?</h4>
-            <p>Yes, ${platform.name} is fully verified and licensed, ensuring fair gameplay and secure encrypted transactions.</p>
-          </div>
-          <div class="faq-item">
-            <h4>How to activate the 500% deposit bonus on ${platform.name}?</h4>
-            <p>Register with promo code <code>${platform.promoCode || 'MAXBOOST500'}</code> during sign-up to claim your welcome bonus.</p>
-          </div>
-        </div>
-
-        <footer>
-          <p><small>&copy; 2026 Gaming Reviews & Regulatory Compliance Portal. 18+ Responsible Gaming.</small></p>
-        </footer>
-      </body>
-      </html>
-    `);
-  }
 
   // Real user -> Serve High-Converting 10-Minute Registration Urgency Interstitial Page then auto-redirect
   return res.send(`

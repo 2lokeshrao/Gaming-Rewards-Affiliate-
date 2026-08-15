@@ -1380,8 +1380,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </div>
                     <input
                       type="checkbox"
-                      checked={localConfig.enableBotCloaking}
-                      onChange={e => setLocalConfig({ ...localConfig, enableBotCloaking: e.target.checked })}
                       className="w-5 h-5 rounded accent-emerald-500"
                     />
                   </label>
@@ -1721,6 +1719,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <SeoManagerTab
               platforms={platforms}
               onSavePlatforms={onSavePlatforms}
+              token={token}
             />
           )}
 

@@ -48,7 +48,6 @@ export const initialGlobalConfig: GlobalConfig = {
   topBannerTemplate: "🔥 Top Verified Gaming Sites available in {{country}} today!",
   enableLuckyWheel: true,
   enableLiveWinnersTicker: true,
-  enableBotCloaking: false,
   enableSubPartnerProgram: true,
   subPartnerHeadline: "Become an Official Gaming Sub-Partner & Earn 45%-50% Lifetime RevShare",
   featuredPrizePlatformId: "1win",

@@ -95,7 +95,7 @@ export default function App() {
   const [showReferModal, setShowReferModal] = useState(false);
 
   // Admin Auth State
-  const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem('affiliate_admin_token'));
+  const [adminToken, setAdminToken] = useState<string | null>(null);
   const [viewingAdmin, setViewingAdmin] = useState(false);
 
   // Active Urgency Timer State
@@ -148,7 +148,7 @@ export default function App() {
   // Fetch data on load
   const loadData = async () => {
     try {
-      const token = localStorage.getItem('affiliate_admin_token');
+      const token = adminToken;
       let res;
       let usedAdmin = false;
       if (token) {
@@ -411,7 +411,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         if (data.token) {
-          localStorage.setItem('affiliate_admin_token', data.token);
+          
           setAdminToken(data.token);
           // Refetch with admin token to get stats, logs, etc.
           const adminRes = await fetch('/api/admin/data', { headers: { Authorization: `Bearer ${data.token}` } });
@@ -436,7 +436,7 @@ export default function App() {
   };
 
   const handleAdminLogout = () => {
-    localStorage.removeItem('affiliate_admin_token');
+    
     setAdminToken(null);
     setViewingAdmin(false);
   };

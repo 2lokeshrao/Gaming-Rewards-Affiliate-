@@ -1,21 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { GamingPlatform } from '../types';
-import { Sparkles, Copy, ExternalLink, X, Flame, ShieldAlert, Award, Clock } from 'lucide-react';
+import { GamingPlatform, ExitIntentPopupConfig } from '../types';
+import { Sparkles, Copy, ExternalLink, X, Flame, ShieldAlert, Award } from 'lucide-react';
 
 interface ExitIntentModalProps {
   topPlatform: GamingPlatform;
+  exitIntentConfig?: ExitIntentPopupConfig;
   onClaimClick: (platform: GamingPlatform) => void;
   onCopyCode: (platform: GamingPlatform) => void;
 }
 
 export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
   topPlatform,
+  exitIntentConfig,
   onClaimClick,
   onCopyCode
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes countdown timer
+
+  // Check if disabled from admin
+  if (exitIntentConfig?.enabled === false) {
+    return null;
+  }
+
+  // Determine effective values from admin exitIntentConfig override or topPlatform fallback
+  const isCustom = exitIntentConfig?.overridePlatformId === 'custom';
+  
+  const displayBrandName = isCustom && exitIntentConfig?.customBrandName 
+    ? exitIntentConfig.customBrandName 
+    : (topPlatform?.name || 'VIP Casino');
+
+  const displayLogoUrl = isCustom && exitIntentConfig?.customLogoUrl 
+    ? exitIntentConfig.customLogoUrl 
+    : (topPlatform?.logoUrl || '');
+
+  const displayTitle = exitIntentConfig?.customTitle 
+    ? exitIntentConfig.customTitle 
+    : `${displayBrandName} VIP Bonus Unlocked`;
+
+  const displayBonusText = exitIntentConfig?.customBonusText 
+    ? exitIntentConfig.customBonusText 
+    : (topPlatform?.bonusText || '500% Deposit Match + 100 Free Spins');
+
+  const displayPromoCode = exitIntentConfig?.customPromoCode 
+    ? exitIntentConfig.customPromoCode 
+    : (topPlatform?.promoCode || 'BONUSVIP');
+
+  const displayBadgeText = exitIntentConfig?.customBadgeText 
+    ? exitIntentConfig.customBadgeText 
+    : 'EXCLUSIVE VIP OFFER';
+
+  const displayButtonText = exitIntentConfig?.customButtonText 
+    ? exitIntentConfig.customButtonText 
+    : 'CLAIM 500% BONUS INSTANTLY';
+
+  const targetPlatformOrCustom: GamingPlatform = isCustom && exitIntentConfig?.customAffiliateUrl ? {
+    id: 'exit_custom',
+    slug: 'exit-vip-offer',
+    name: displayBrandName,
+    logoUrl: displayLogoUrl,
+    rating: 9.9,
+    starRating: 5,
+    badges: ['Verified VIP'],
+    bonusText: displayBonusText,
+    promoCode: displayPromoCode,
+    rawAffiliateUrl: exitIntentConfig.customAffiliateUrl,
+    isFeatured: true,
+    featuredRank: 1,
+    isActive: true,
+    category: 'VIP Promotion',
+    clicksCount: 0,
+    copiesCount: 0
+  } : topPlatform;
 
   useEffect(() => {
     // Check if exit intent was already triggered during this session
@@ -62,23 +118,10 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
     };
   }, []);
 
-  // Countdown timer effect
-  useEffect(() => {
-    if (!isOpen) return;
-    const interval = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isOpen]);
-
   if (!isOpen || !topPlatform) return null;
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
   const handleCopy = () => {
-    onCopyCode(topPlatform);
+    onCopyCode(targetPlatformOrCustom);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -98,37 +141,33 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header Urgency Badge */}
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 font-black text-xs border border-red-500/40 flex items-center gap-1.5 ">
+        {/* Header Badge */}
+        <div className="flex items-center justify-start gap-2 mb-4">
+          <span className="px-3.5 py-1.5 rounded-full bg-red-500/20 text-red-400 font-black text-xs border border-red-500/40 flex items-center gap-1.5">
             <ShieldAlert className="w-4 h-4 text-red-400" />
-            WAIT! DON'T LEAVE YOUR BONUS BEHIND!
+            {displayBadgeText}
           </span>
-
-          <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1 rounded-full border border-amber-500/30 text-amber-400 font-mono font-bold text-xs">
-            <Clock className="w-3.5 h-3.5" />
-            <span>EXPIRES: {formattedTime}</span>
-          </div>
         </div>
 
         {/* Hero Card Content */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
-            <img width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }} loading="lazy"
-              src={topPlatform.logoUrl}
-              alt={topPlatform.name}
-              className="h-12 object-contain"
-              
-            />
-          </div>
+          {displayLogoUrl && (
+            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+              <img width="40" height="40" decoding="async" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAHBJREFUWEft0zEKACAQw8D7/6f90lJwEFzEQe5SU5qsqqpeZ373n/2YczxQYxMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwYhMwkro5m+0BP002ATXz2hAAAAAASUVORK5CYII="; }} loading="lazy"
+                src={displayLogoUrl}
+                alt={displayBrandName}
+                className="h-12 object-contain"
+              />
+            </div>
+          )}
 
           <div>
             <h3 className="text-2xl font-black text-white flex items-center justify-center gap-2">
-              <Sparkles className="w-6 h-6 text-amber-400" />
-              <span>{topPlatform.name} VIP Bonus Unlocked</span>
+              <Sparkles className="w-6 h-6 text-amber-400 shrink-0" />
+              <span>{displayTitle}</span>
             </h3>
             <p className="text-amber-300 font-extrabold text-lg mt-1">
-              {topPlatform.bonusText || '500% Deposit Match + 100 Free Spins'}
+              {displayBonusText}
             </p>
           </div>
 
@@ -139,7 +178,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
             </div>
             <div className="flex items-center justify-between bg-slate-900 rounded-xl p-2.5 border border-slate-800">
               <span className="text-xl font-mono font-black text-amber-400 tracking-wider pl-2">
-                {topPlatform.promoCode}
+                {displayPromoCode}
               </span>
 
               <button
@@ -168,11 +207,11 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
           <button
             onClick={() => {
               setIsOpen(false);
-              onClaimClick(topPlatform);
+              onClaimClick(targetPlatformOrCustom);
             }}
             className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer group hover:scale-[1.02]"
           >
-            <span>CLAIM 500% BONUS INSTANTLY</span>
+            <span>{displayButtonText}</span>
             <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
 
@@ -180,7 +219,7 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
             onClick={() => setIsOpen(false)}
             className="text-xs text-slate-500 hover:text-slate-400 cursor-pointer underline"
           >
-            No thanks, I will forfeit this 500% bonus
+            No thanks, I will forfeit this exclusive bonus
           </button>
         </div>
       </div>

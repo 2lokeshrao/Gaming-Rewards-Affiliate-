@@ -963,17 +963,31 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const fs = await import('fs');
-    const distPath = fs.existsSync(path.join(process.cwd(), 'dist'))
-      ? path.join(process.cwd(), 'dist')
-      : path.join(__dirname);
+    
+    // Find the correct dist directory regardless of working directory
+    const candidates = [
+      path.join(process.cwd(), 'dist'),
+      path.join(__dirname, 'dist'),
+      path.join(__dirname),
+      process.cwd()
+    ];
+    const distPath = candidates.find(c => fs.existsSync(path.join(c, 'index.html')) && fs.existsSync(path.join(c, 'assets')))
+      || candidates.find(c => fs.existsSync(path.join(c, 'index.html')))
+      || path.join(process.cwd(), 'dist');
 
-    // Serve static files with proper cache headers
+    console.log(`[Production] Serving static files from: ${distPath}`);
+
+    // Serve static files with proper MIME types & cache headers
     app.use(express.static(distPath, {
       maxAge: '1y',
       immutable: true,
       index: false,
       setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html')) {
+        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+          res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+        } else if (filePath.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+        } else if (filePath.endsWith('.html')) {
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
           res.setHeader('Pragma', 'no-cache');
           res.setHeader('Expires', '0');
@@ -981,16 +995,37 @@ async function startServer() {
       }
     }));
 
-    // Prevent missing static assets from falling through to HTML index
+    // Explicitly serve assets folder if nested
+    const assetsPath = path.join(distPath, 'assets');
+    if (fs.existsSync(assetsPath)) {
+      app.use('/assets', express.static(assetsPath, {
+        maxAge: '1y',
+        immutable: true,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+          } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+          }
+        }
+      }));
+    }
+
+    // Explicitly return 404 for missing static assets so they never fall back to index.html
     app.use('/assets', (req, res) => {
-      res.status(404).send('Asset not found');
+      res.status(404).setHeader('Content-Type', 'text/plain').send('Asset not found');
     });
 
     app.get('*', (req, res) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.sendFile(path.join(distPath, 'index.html'));
+      const htmlFile = path.join(distPath, 'index.html');
+      if (fs.existsSync(htmlFile)) {
+        res.sendFile(htmlFile);
+      } else {
+        res.status(500).send('Production build not found. Run npm run build.');
+      }
     });
   }
 

@@ -112,12 +112,26 @@ export interface CustomCoupon {
   copiesCount: number;
 }
 
+export interface ExitIntentPopupConfig {
+  enabled?: boolean;
+  overridePlatformId?: string; // 'custom' or any platform id
+  customBrandName?: string;
+  customLogoUrl?: string;
+  customTitle?: string;
+  customBonusText?: string;
+  customPromoCode?: string;
+  customAffiliateUrl?: string;
+  customBadgeText?: string;
+  customButtonText?: string;
+}
+
 export interface GlobalConfig {
   heroHeadline: string;
   heroSubheading: string;
   topBannerTemplate: string;
   enableLuckyWheel: boolean;
   enableLiveWinnersTicker: boolean;
+  exitIntentConfig?: ExitIntentPopupConfig;
   enableSubPartnerProgram: boolean;
   subPartnerHeadline: string;
   featuredPrizePlatformId: string;

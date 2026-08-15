@@ -841,7 +841,12 @@ export default function App() {
         {/* Exit-Intent Popup Modal */}
         {platforms.length > 0 && (
           <ExitIntentModal
-            topPlatform={platforms.find(p => p.isFeatured && p.isActive) || platforms[0]}
+            topPlatform={
+              (config?.exitIntentConfig?.overridePlatformId && config.exitIntentConfig.overridePlatformId !== 'custom')
+                ? (platforms.find(p => p.id === config.exitIntentConfig?.overridePlatformId) || platforms.find(p => p.isFeatured && p.isActive) || platforms[0])
+                : (platforms.find(p => p.isFeatured && p.isActive) || platforms[0])
+            }
+            exitIntentConfig={config?.exitIntentConfig}
             onClaimClick={handleClaimClick}
             onCopyCode={handleCopyCode}
           />

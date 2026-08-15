@@ -1313,6 +1313,177 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </span>
                 </div>
 
+                {/* Exit Intent Popup Customizer & Promotion Manager */}
+                <div className="pt-4 border-t border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-sm text-amber-400 flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-amber-400" />
+                        <span>Exit Intent VIP Promotion Popup Settings</span>
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Choose which gaming company/offer is promoted when a user tries to close the website, or set a custom affiliate promotion.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                      <span className="text-[11px] font-bold text-slate-300">Enable Popup</span>
+                      <input
+                        type="checkbox"
+                        checked={localConfig.exitIntentConfig?.enabled !== false}
+                        onChange={e => {
+                          const updated = {
+                            ...(localConfig.exitIntentConfig || {}),
+                            enabled: e.target.checked
+                          };
+                          setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                        }}
+                        className="w-4 h-4 rounded accent-amber-500"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+                    {/* Platform Selector */}
+                    <div>
+                      <label className="block text-slate-300 font-bold mb-1 text-[11px]">
+                        Select Company / Offer to Promote
+                      </label>
+                      <select
+                        value={localConfig.exitIntentConfig?.overridePlatformId || ''}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selectedPlat = platforms.find(p => p.id === val);
+                          const updated = {
+                            ...(localConfig.exitIntentConfig || {}),
+                            overridePlatformId: val,
+                            // Pre-fill fields if a platform is picked
+                            ...(selectedPlat ? {
+                              customBrandName: selectedPlat.name,
+                              customLogoUrl: selectedPlat.logoUrl,
+                              customBonusText: selectedPlat.bonusText,
+                              customPromoCode: selectedPlat.promoCode,
+                              customAffiliateUrl: selectedPlat.rawAffiliateUrl
+                            } : {})
+                          };
+                          setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                        }}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-medium focus:border-amber-500 outline-none"
+                      >
+                        <option value="">⭐ Auto (Default Featured Platform)</option>
+                        {platforms.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.promoCode} - {p.bonusText})
+                          </option>
+                        ))}
+                        <option value="custom">⚙️ Custom Manual Promotion (Any Company / Custom Link)</option>
+                      </select>
+                    </div>
+
+                    {/* Custom Offer Override Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Company / Brand Name</label>
+                        <input
+                          type="text"
+                          value={localConfig.exitIntentConfig?.customBrandName || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customBrandName: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="e.g. 1Win / Stake / Parimatch"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Logo Image URL</label>
+                        <input
+                          type="url"
+                          value={localConfig.exitIntentConfig?.customLogoUrl || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customLogoUrl: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="https://... or /logos/1win.png"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-slate-300 font-bold mb-1">
+                          Referral / Affiliate Link (Target URL)
+                        </label>
+                        <input
+                          type="url"
+                          value={localConfig.exitIntentConfig?.customAffiliateUrl || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customAffiliateUrl: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="https://your-affiliate-link.com/?ref=123"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-amber-300 font-mono focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Promo Code</label>
+                        <input
+                          type="text"
+                          value={localConfig.exitIntentConfig?.customPromoCode || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customPromoCode: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="e.g. 500TOPUP or VIPBONUS"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Bonus Offer Subtitle</label>
+                        <input
+                          type="text"
+                          value={localConfig.exitIntentConfig?.customBonusText || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customBonusText: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="e.g. Get 500% Welcome Bonus + 100 Free Spins"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Top Badge Text</label>
+                        <input
+                          type="text"
+                          value={localConfig.exitIntentConfig?.customBadgeText || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customBadgeText: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="e.g. EXCLUSIVE VIP OFFER"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:border-amber-500 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-bold mb-1">Action Button Text</label>
+                        <input
+                          type="text"
+                          value={localConfig.exitIntentConfig?.customButtonText || ''}
+                          onChange={e => {
+                            const updated = { ...(localConfig.exitIntentConfig || {}), customButtonText: e.target.value };
+                            setLocalConfig({ ...localConfig, exitIntentConfig: updated });
+                          }}
+                          placeholder="e.g. CLAIM 500% BONUS INSTANTLY"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white focus:border-amber-500 outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Toggles */}
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <h3 className="font-extrabold text-sm text-purple-400">Gamification & Bot Controls</h3>

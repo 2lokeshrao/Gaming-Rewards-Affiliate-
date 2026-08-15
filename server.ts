@@ -304,7 +304,6 @@ app.post('/api/check-email', (req, res) => {
   const platform = statePlatforms.find(p => p.id === platformId) || statePlatforms[0];
 
   const registeredList = stateConfig.registeredEmailsList || [
-    "lokeshrao050@gmail.com",
     "user@example.com",
     "test@gmail.com",
     "admin@1win.com"
@@ -764,10 +763,25 @@ app.get('/go/:slug', (req, res) => {
   `);
 });
 
-// SEO Helper function to dynamically inject sitemap.xml route
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /go/
+Disallow: /api/admin/
+
+Sitemap: https://bonuspromocode.in/sitemap.xml
+`);
+});
+
+// SEO Helper function
+// to dynamically inject sitemap.xml route
 function injectSitemapRoute(app: express.Application) {
   app.get('/sitemap.xml', (req, res) => {
-    const host = `${req.protocol}://${req.get('host')}`;
+    const host = `https://${req.get('host')}`;
     const now = new Date().toISOString().split('T')[0];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -783,13 +797,7 @@ function injectSitemapRoute(app: express.Application) {
 
     // Active Gaming Platforms
     statePlatforms.filter(p => p.isActive).forEach(p => {
-      // Redirect Route
-      xml += `  <url>\n`;
-      xml += `    <loc>${host}/go/${p.slug}</loc>\n`;
-      xml += `    <lastmod>${now}</lastmod>\n`;
-      xml += `    <changefreq>daily</changefreq>\n`;
-      xml += `    <priority>0.9</priority>\n`;
-      xml += `  </url>\n`;
+
 
       // Review Route
       xml += `  <url>\n`;
@@ -903,8 +911,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, { maxAge: '1y' }));
     app.get('*', (req, res) => {
+      res.set('Cache-Control', 'no-cache');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

@@ -218,7 +218,6 @@ function verifyJwtToken(req: Request, res: Response, next: Function) {
 
 // Brute-force Login Protection & Rate-Limiting Tracker
 const loginAttemptTracker: Record<string, { attempts: number[]; lockUntil: number }> = {};
-const checkedEmails = new Set<string>();
 
 // Rate Limiting Middleware for Admin Login
 const adminLoginRateLimiter = (req: Request, res: Response, next: Function) => {

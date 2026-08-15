@@ -130,7 +130,6 @@ export interface GlobalConfig {
   heroSubheading: string;
   topBannerTemplate: string;
   enableLuckyWheel: boolean;
-  enableLiveWinnersTicker: boolean;
   exitIntentConfig?: ExitIntentPopupConfig;
   enableSubPartnerProgram: boolean;
   subPartnerHeadline: string;
@@ -171,8 +170,6 @@ export interface GlobalConfig {
   };
 
   // Email Eligibility Checker Settings
-  registeredEmailsList?: string[];
-  strictEmailChecking?: boolean;
 }
 
 export interface EmailCheckResult {

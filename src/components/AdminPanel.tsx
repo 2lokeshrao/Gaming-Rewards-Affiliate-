@@ -1605,33 +1605,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <p>• <strong>Secret URL Query:</strong> Visit website with <code className="text-amber-300 font-mono">?admin=1</code> to trigger secret login.</p>
                     </div>
                   </div>
-
-                  {/* Registered Email Database Management */}
-                  <div className="pt-4 border-t border-slate-800 space-y-3">
-                    <h3 className="font-extrabold text-sm text-purple-400 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-purple-400" />
-                      <span>Email Bonus Eligibility Database (Registered Users List)</span>
-                    </h3>
-
-                    <div>
-                      <label className="block text-slate-300 font-bold text-xs mb-1">
-                        Known Registered Emails / Keywords (Comma Separated)
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={(localConfig.registeredEmailsList || []).join(', ')}
-                        onChange={e => {
-                          const list = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                          setLocalConfig({ ...localConfig, registeredEmailsList: list });
-                        }}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs font-mono focus:border-purple-500 outline-none"
-                        placeholder="e.g. lokeshrao050@gmail.com, test@gmail.com, user@example.com"
-                      />
-                      <span className="text-[11px] text-slate-400 block mt-1">
-                        Any user entering these emails will automatically be warned that they have an existing account and guided to register with a new email address to claim their 500% bonus.
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
 

@@ -47,7 +47,6 @@ export const initialGlobalConfig: GlobalConfig = {
   heroSubheading: "Verified, licensed platforms with instant withdrawals, high RTP slots, and up to $1,500 + 500% first deposit bonuses.",
   topBannerTemplate: "🔥 Top Verified Gaming Sites available in {{country}} today!",
   enableLuckyWheel: true,
-  enableLiveWinnersTicker: true,
   enableSubPartnerProgram: true,
   subPartnerHeadline: "Become an Official Gaming Sub-Partner & Earn 45%-50% Lifetime RevShare",
   featuredPrizePlatformId: "1win",
@@ -255,14 +254,6 @@ export const initialGlobalConfig: GlobalConfig = {
   // Security & Admin Link Hiding
   hideAdminLink: true,
   secretKeyTrigger: "Ctrl+Shift+A",
-  // Email Eligibility Checker Settings
-  strictEmailChecking: true,
-  registeredEmailsList: [
-    "user@example.com",
-    "test@gmail.com",
-    "admin@1win.com",
-    "player1@gmail.com"
-  ]
 };
 
 export const initialPlatforms: GamingPlatform[] = [

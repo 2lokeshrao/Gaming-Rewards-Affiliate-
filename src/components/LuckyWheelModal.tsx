@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { GamingPlatform, GlobalConfig } from '../types';
 import { Sparkles, Trophy, X, ExternalLink, RefreshCw, Timer } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
-import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
 
@@ -43,12 +42,15 @@ export const LuckyWheelModal: React.FC<LuckyWheelProps> = ({ platforms, config, 
 
     setRotation(totalRotation);
 
-    setTimeout(() => {
+    setTimeout(async () => {
+
       setSpinning(false);
       const prize = WHEEL_SEGMENTS[winningIndex];
       setWonPrize(prize);
 
+      const confetti = (await import("canvas-confetti")).default;
       confetti({
+
         particleCount: 100,
         spread: 80,
         origin: { y: 0.6 }

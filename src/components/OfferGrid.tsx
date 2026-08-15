@@ -3,7 +3,6 @@ import { GamingPlatform, UserGeo } from '../types';
 import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import { AdContainer } from './AdContainer';
-import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
 import { LazyImage } from './LazyImage';
@@ -46,11 +45,12 @@ export const OfferGrid: React.FC<OfferGridProps> = ({
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopy = (p: GamingPlatform, e: React.MouseEvent) => {
+  const handleCopy = async (p: GamingPlatform, e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(p.promoCode);
     setCopiedId(p.id);
     onCopyCode(p);
+    const confetti = (await import("canvas-confetti")).default;
     confetti({
       particleCount: 35,
       spread: 50,

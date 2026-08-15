@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GamingPlatform } from '../types';
 import { Sparkles, Copy, ExternalLink, X, Flame, ShieldAlert, Award, Clock } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 interface ExitIntentModalProps {
   topPlatform: GamingPlatform;
@@ -37,11 +36,12 @@ export const ExitIntentModal: React.FC<ExitIntentModalProps> = ({
       }
     };
 
-    const triggerModal = () => {
+    const triggerModal = async () => {
       if (!sessionStorage.getItem('exit_intent_shown')) {
         sessionStorage.setItem('exit_intent_shown', 'true');
         setIsOpen(true);
         try {
+          const confetti = (await import("canvas-confetti")).default;
           confetti({
             particleCount: 50,
             spread: 60,

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { GamingPlatform } from '../types';
 import { Crown, Star, CheckCircle2, Copy, ExternalLink, Flame, ShieldCheck, QrCode, MessageSquare, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
-import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
 import { LazyImage } from './LazyImage';
@@ -31,11 +30,12 @@ export const TopThreeCarousel: React.FC<TopThreeProps> = ({
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopy = (p: GamingPlatform, e: React.MouseEvent) => {
+  const handleCopy = async (p: GamingPlatform, e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(p.promoCode);
     setCopiedId(p.id);
     onCopyCode(p);
+    const confetti = (await import("canvas-confetti")).default;
     confetti({
       particleCount: 40,
       spread: 60,

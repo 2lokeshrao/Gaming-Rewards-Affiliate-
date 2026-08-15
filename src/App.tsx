@@ -1,32 +1,21 @@
-import { AiArticleView } from "./components/AiArticleView";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, WinnerTickerItem, UserGeo, SubPartnerApplication } from './types';
 import { injectFaqSchemaInHead, injectGoogleSiteVerification } from './utils/seo';
 import { TopBanner } from './components/TopBanner';
 import { HeroSection } from './components/HeroSection';
-import { TopThreeCarousel } from './components/TopThreeCarousel';
-import { OfferGrid } from './components/OfferGrid';
 import { SocialMediaBar } from './components/SocialMediaBar';
 import { LiveWinnersTicker } from './components/LiveWinnersTicker';
 import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw, Globe } from 'lucide-react';
-import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { TermsConditions } from './components/TermsConditions';
 import { TopLoadingBar } from './components/TopLoadingBar';
-import { WalletArticlePage } from './components/WalletArticlePage';
-import { FinancialHubPage } from './components/FinancialHubPage';
 
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
-import { CustomPageView } from './components/CustomPageView';
 import { CustomPage } from './types';
-import { BrandArticlePage } from './components/BrandArticlePage';
 
 
 import { AdContainer } from './components/AdContainer';
 import { AppSkeleton } from './components/Skeletons';
 import { ToastNotification } from './components/ToastNotification';
-import { PwaInstallModal } from './components/PwaInstallModal';
-import { ReferFriendModal } from './components/ReferFriendModal';
 
 import { useLanguage } from './i18n/LanguageContext';
 import { formatLocalizedBonus } from './utils/currency';
@@ -34,6 +23,19 @@ import { formatLocalizedBonus } from './utils/currency';
 import { Language } from './i18n/translations';
 
 // Code-Splitting with React.lazy for heavy components & modals
+
+const BrandArticlePage = lazy(() => import('./components/BrandArticlePage').then(m => ({ default: m.BrandArticlePage })));
+const AiArticleView = lazy(() => import('./components/AiArticleView').then(m => ({ default: m.AiArticleView })));
+const WalletArticlePage = lazy(() => import('./components/WalletArticlePage').then(m => ({ default: m.WalletArticlePage })));
+const FinancialHubPage = lazy(() => import('./components/FinancialHubPage').then(m => ({ default: m.FinancialHubPage })));
+const CustomPageView = lazy(() => import('./components/CustomPageView').then(m => ({ default: m.CustomPageView })));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsConditions = lazy(() => import('./components/TermsConditions').then(m => ({ default: m.TermsConditions })));
+const PwaInstallModal = lazy(() => import('./components/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
+const ReferFriendModal = lazy(() => import('./components/ReferFriendModal').then(m => ({ default: m.ReferFriendModal })));
+const OfferGrid = lazy(() => import('./components/OfferGrid').then(m => ({ default: m.OfferGrid })));
+const TopThreeCarousel = lazy(() => import('./components/TopThreeCarousel').then(m => ({ default: m.TopThreeCarousel })));
+
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
 const SeoContentSection = lazy(() => import('./components/SeoContentSection').then(m => ({ default: m.SeoContentSection })));
 const ProgrammaticSeoArticles = lazy(() => import('./components/ProgrammaticSeoArticles').then(m => ({ default: m.ProgrammaticSeoArticles })));
@@ -531,7 +533,7 @@ export default function App() {
       <>
         <TopLoadingBar isLoading={isNavigating} />
         <Navbar platforms={platforms} customPages={customPages} geo={geo} onOpenAppModal={() => setShowPwaModal(true)} />
-        <CustomPageView page={customPageMatch} platforms={platforms} customPages={customPages} config={config} />
+        <Suspense fallback={<div className="min-h-screen pt-24"><AppSkeleton /></div>}><CustomPageView page={customPageMatch} platforms={platforms} customPages={customPages} config={config} /></Suspense>
         <Footer
           platforms={platforms}
           customPages={customPages}
@@ -553,7 +555,7 @@ export default function App() {
       <>
         <TopLoadingBar isLoading={isNavigating} />
         <Navbar platforms={platforms} customPages={customPages} geo={geo} onOpenAppModal={() => setShowPwaModal(true)} />
-        <BrandArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} onClaimClick={handleClaimClick} />
+        <Suspense fallback={<div className="min-h-screen pt-24"><AppSkeleton /></div>}><BrandArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} onClaimClick={handleClaimClick} /></Suspense>
         <Footer
           platforms={platforms}
           customPages={customPages}
@@ -574,7 +576,7 @@ export default function App() {
     return (
       <>
         <TopLoadingBar isLoading={isNavigating} />
-        <FinancialHubPage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} />
+        <Suspense fallback={<div className="min-h-screen pt-24 text-center text-emerald-500">Loading Financial Hub...</div>}><FinancialHubPage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} /></Suspense>
         <Footer
           platforms={platforms}
           customPages={customPages}
@@ -594,7 +596,7 @@ export default function App() {
     return (
       <>
         <TopLoadingBar isLoading={isNavigating} />
-        <WalletArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} />
+        <Suspense fallback={<div className="min-h-screen pt-24 text-center text-amber-500">Loading Wallet Data...</div>}><WalletArticlePage path={currentPath} geo={geo} platforms={platforms} customPages={customPages} config={config} /></Suspense>
         <Footer
           platforms={platforms}
           customPages={customPages}
@@ -614,7 +616,7 @@ export default function App() {
     return (
       <>
         <TopLoadingBar isLoading={isNavigating} />
-        <PrivacyPolicy />
+        <Suspense fallback={<div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Policy...</div>}><PrivacyPolicy /></Suspense>
       </>
     );
   }
@@ -623,7 +625,7 @@ export default function App() {
     return (
       <>
         <TopLoadingBar isLoading={isNavigating} />
-        <TermsConditions />
+        <Suspense fallback={<div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Terms...</div>}><TermsConditions /></Suspense>
       </>
     );
   }
@@ -659,13 +661,13 @@ export default function App() {
         <AdContainer slotId="hero_banner" />
 
         {/* 3. Top 3 Featured Carousel / Cards */}
-        <TopThreeCarousel
+        <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div></div>}><TopThreeCarousel
           platforms={platforms}
           onClaimClick={handleClaimClick}
           onCopyCode={handleCopyCode}
           onOpenQrModal={(p) => setSelectedQrPlatform(p)}
           onOpenFeedbackModal={(p) => setSelectedFeedbackPlatform(p)}
-        />
+        /></Suspense>
 
         {/* Floating Action Launchers */}
         <div className="max-w-7xl mx-auto px-4 my-6 flex flex-wrap items-center justify-center gap-3">
@@ -710,14 +712,14 @@ export default function App() {
           )}
 
           {/* 5. Complete Offers Directory */}
-          <OfferGrid
+          <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full"></div></div>}><OfferGrid
             platforms={platforms}
             onClaimClick={handleClaimClick}
             onCopyCode={handleCopyCode}
             onSubPartnerClick={() => setShowSubPartnerModal(true)}
             onOpenQrModal={(p) => setSelectedQrPlatform(p)}
             onOpenFeedbackModal={(p) => setSelectedFeedbackPlatform(p)}
-          />
+          /></Suspense>
 
           {/* 6. SEO Article & Keyword Index Table */}
           <ProgrammaticSeoArticles
@@ -823,11 +825,11 @@ export default function App() {
         )}
 
         {showPwaModal && (
-          <PwaInstallModal onClose={() => setShowPwaModal(false)} />
+          <Suspense fallback={null}><PwaInstallModal onClose={() => setShowPwaModal(false)} /></Suspense>
         )}
 
         {showReferModal && (
-          <ReferFriendModal onClose={() => setShowReferModal(false)} />
+          <Suspense fallback={null}><ReferFriendModal onClose={() => setShowReferModal(false)} /></Suspense>
         )}
       </Suspense>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlobalConfig, GamingPlatform, TrackingPixelConfig } from '../types';
-import { Target, Save, CheckCircle2, Code, ShieldCheck, Sparkles, Activity } from 'lucide-react';
+import { Target, Save, CheckCircle2, Sparkles, Activity } from 'lucide-react';
 
 interface TrackingPixelManagerTabProps {
   config: GlobalConfig;

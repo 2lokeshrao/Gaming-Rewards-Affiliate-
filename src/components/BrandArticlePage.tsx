@@ -5,7 +5,7 @@ import { GamingPlatform, UserGeo, CustomPage, GlobalConfig } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getGeoContext, getSeoTemplates } from '../utils/seoTemplates';
 import { formatLocalizedBonus } from '../utils/currency';
-import { ShieldCheck, CheckCircle, ArrowRight, Home, ChevronRight, Landmark } from 'lucide-react';
+import { CheckCircle, ArrowRight, Home, ChevronRight } from 'lucide-react';
 import { WalletReferrals } from './WalletReferrals';
 import { Sidebar } from './Sidebar';
 

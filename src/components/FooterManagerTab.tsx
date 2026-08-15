@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlobalConfig, FooterColumn } from '../types';
-import { Menu, Plus, Trash2, Save, Link as LinkIcon, Edit3, CheckCircle2 } from 'lucide-react';
+import { Menu, Plus, Trash2, Save, CheckCircle2 } from 'lucide-react';
 
 interface FooterManagerTabProps {
   config: GlobalConfig;

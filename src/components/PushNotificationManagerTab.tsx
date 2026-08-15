@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PushNotificationAlert, GamingPlatform, GlobalConfig } from '../types';
-import { Send, Bell, Zap, Sparkles, CheckCircle2, AlertCircle, History, Smartphone, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Send, Bell, Zap, Sparkles, CheckCircle2, History, Smartphone, ShieldCheck, RefreshCw } from 'lucide-react';
 
 interface PushNotificationManagerTabProps {
   config: GlobalConfig;

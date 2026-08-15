@@ -11,22 +11,21 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-
     build: {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-ui': ['lucide-react', 'recharts']
+            'vendor-react': ['react', 'react-dom', 'react-is'],
+            'vendor-ui': ['lucide-react', 'recharts'],
+            'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+            'vendor-editor': ['@uiw/react-md-editor', 'react-markdown', 'dompurify', 'isomorphic-dompurify']
           }
         }
-      }
+      },
+      chunkSizeWarningLimit: 800
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };

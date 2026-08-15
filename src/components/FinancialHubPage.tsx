@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Sidebar } from './Sidebar';
 import { GamingPlatform, CustomPage, GlobalConfig } from '../types';
-import { CreditCard, Landmark, Banknote, ShieldCheck, ArrowRight, Home, ChevronRight, CheckCircle2, Zap, Globe } from 'lucide-react';
+import { CreditCard, Landmark, Banknote, ShieldCheck, ArrowRight, Home, ChevronRight, Zap, Globe } from 'lucide-react';
 import { UserGeo } from '../types';
 
 export const FinancialHubPage: React.FC<{ path: string; geo: any; platforms: GamingPlatform[]; customPages: CustomPage[]; config: GlobalConfig }> = ({ path, geo, platforms, customPages, config }) => {

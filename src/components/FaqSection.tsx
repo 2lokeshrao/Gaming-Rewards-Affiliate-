@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle, ShieldCheck, Users, Gamepad2, Sparkles, Mail, DollarSign } from 'lucide-react';
+import { ChevronDown, HelpCircle, ShieldCheck, Users, Gamepad2 } from 'lucide-react';
 
 interface FaqItem {
   q: string;

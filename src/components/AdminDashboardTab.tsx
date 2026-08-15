@@ -1,25 +1,7 @@
 import React, { useState } from 'react';
 import { GlobalConfig, GamingPlatform, PartnerPanelConfig, AnalyticsStats } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import {
-  DollarSign,
-  Users,
-  CreditCard,
-  TrendingUp,
-  RefreshCw,
-  Key,
-  Globe,
-  CheckCircle2,
-  AlertCircle,
-  Settings,
-  Zap,
-  Award,
-  BarChart3,
-  Link,
-  Lock,
-  ArrowUpRight,
-  MousePointer
-} from 'lucide-react';
+import { DollarSign, Users, CreditCard, TrendingUp, RefreshCw, Key, CheckCircle2, Settings, Zap, Award, BarChart3, MousePointer } from 'lucide-react';
 
 interface AdminDashboardTabProps {
   config: GlobalConfig;

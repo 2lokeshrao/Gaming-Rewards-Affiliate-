@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GamingPlatform, CustomCoupon } from '../types';
-import { Globe, RefreshCw, ExternalLink, CheckCircle2, FileText, Copy, Check, Sparkles, Code } from 'lucide-react';
+import { Globe, RefreshCw, ExternalLink, Copy, Check, Code } from 'lucide-react';
 
 interface SitemapManagerTabProps {
   platforms: GamingPlatform[];

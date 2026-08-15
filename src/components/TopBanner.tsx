@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserGeo } from '../types';
-import { ShieldCheck, Flame, Globe, Timer, Sparkles, Copy, Check } from 'lucide-react';
+import { ShieldCheck, Flame, Globe, Timer, Copy, Check } from 'lucide-react';
 
 interface ActiveUrgencyTimer {
   platformName: string;

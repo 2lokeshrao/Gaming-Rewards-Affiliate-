@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { GlobalConfig, GamingPlatform, AIArticle } from '../types';
-import { Sparkles, Save, Edit3, Trash2, Globe, TrendingUp, CheckCircle2, FileText, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { Sparkles, Save, Edit3, Trash2, FileText, RefreshCw } from 'lucide-react';
 
 interface AiArticleManagerTabProps {
   config: GlobalConfig;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CustomCoupon } from '../types';
-import { Ticket, Plus, Save, Trash2, Edit3, CheckCircle2, Copy, Sparkles, Globe, Eye } from 'lucide-react';
+import { Ticket, Plus, Save, Trash2, Edit3, CheckCircle2, Sparkles, Globe } from 'lucide-react';
 
 interface CustomCouponManagerTabProps {
   coupons: CustomCoupon[];

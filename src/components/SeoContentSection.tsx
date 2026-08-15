@@ -1,6 +1,6 @@
 import React from 'react';
 import { GamingPlatform, CustomCoupon } from '../types';
-import { Search, Sparkles, CheckCircle2, Flame, Award, ShieldCheck, Tag, Ticket } from 'lucide-react';
+import { Search, CheckCircle2, Flame, Award, Tag, Ticket } from 'lucide-react';
 
 import { UserGeo } from '../types';
 

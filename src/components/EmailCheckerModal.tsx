@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform, EmailCheckResult } from '../types';
-import { Mail, CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, RefreshCw, Sparkles, X, ExternalLink } from 'lucide-react';
+import { Mail, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Sparkles, X, ExternalLink } from 'lucide-react';
 
 interface EmailCheckerModalProps {
   platforms: GamingPlatform[];

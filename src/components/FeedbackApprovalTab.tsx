@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PlatformFeedback } from '../types';
-import { MessageSquare, Check, Trash2, Star, Clock, CheckCircle2, ShieldCheck, Plus, Sparkles } from 'lucide-react';
+import { MessageSquare, Check, Trash2, Star, Clock, CheckCircle2, Plus, Sparkles } from 'lucide-react';
 
 interface FeedbackApprovalTabProps {
   feedbacks: PlatformFeedback[];

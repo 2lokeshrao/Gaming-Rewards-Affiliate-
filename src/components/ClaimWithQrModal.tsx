@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { GamingPlatform } from '../types';
-import { Smartphone, QrCode, X, ExternalLink, Copy, Check, Sparkles, ShieldCheck, Flame } from 'lucide-react';
+import { Smartphone, X, ExternalLink, Copy, Check } from 'lucide-react';
 
 interface ClaimWithQrModalProps {
   platform: GamingPlatform | null;

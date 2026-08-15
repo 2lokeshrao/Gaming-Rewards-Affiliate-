@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform } from '../types';
-import { Search, Sparkles, CheckCircle2, Save, Globe, Eye, RefreshCw, Copy, Check, Info } from 'lucide-react';
+import { Search, Sparkles, CheckCircle2, Save, Globe, Info } from 'lucide-react';
 
 interface SeoManagerTabProps {
   token: string;

@@ -1,36 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication, CustomPage } from '../types';
-import {
-  LayoutDashboard,
-  ChevronUp,
-  ChevronDown,
-  Activity,
-  Gamepad2,
-  Settings,
-  BarChart2,
-  Plus,
-  Trash2,
-  Edit3,
-  Check,
-  X,
-  Menu,
-  Key,
-  Power,
-  Flame,
-  MousePointer,
-  Copy,
-  Eye,
-  LogOut,
-  Sparkles,
-  Lock,
-  Users,
-  MessageCircle,
-  ExternalLink,
-  Mail,
-  Search,
-  Ticket
-} from 'lucide-react';
+import { LayoutDashboard, ChevronUp, ChevronDown, Activity, Gamepad2, Settings, BarChart2, Plus, Trash2, Edit3, Check, X, Menu, Key, Power, Flame, Eye, LogOut, Sparkles, Lock, Users, MessageCircle, ExternalLink, Mail, Search, Ticket } from 'lucide-react';
 import { SeoManagerTab } from './SeoManagerTab';
 import { SeoHealthTab } from './SeoHealthTab';
 import { CustomCouponManagerTab } from './CustomCouponManagerTab';

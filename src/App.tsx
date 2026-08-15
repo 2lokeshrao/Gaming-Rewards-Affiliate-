@@ -5,7 +5,7 @@ import { TopBanner } from './components/TopBanner';
 import { HeroSection } from './components/HeroSection';
 import { SocialMediaBar } from './components/SocialMediaBar';
 import { LiveWinnersTicker } from './components/LiveWinnersTicker';
-import { ShieldCheck, Award, Lock, Sparkles, Users, Mail, RefreshCw, Globe } from 'lucide-react';
+import { Sparkles, Users, Mail } from 'lucide-react';
 import { TopLoadingBar } from './components/TopLoadingBar';
 
 import { Navbar } from "./components/Navbar";

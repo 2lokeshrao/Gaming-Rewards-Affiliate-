@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform } from '../types';
-import { Crown, Star, CheckCircle2, Copy, ExternalLink, Flame, ShieldCheck, QrCode, MessageSquare, Wallet } from 'lucide-react';
+import { Crown, Star, CheckCircle2, Copy, ExternalLink, ShieldCheck, QrCode, MessageSquare, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';

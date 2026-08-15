@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CustomCoupon } from '../types';
-import { Ticket, Copy, Check, Sparkles, ExternalLink, Flame, ShieldCheck } from 'lucide-react';
+import { Ticket, Copy, Check, Sparkles, ExternalLink, Flame } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatLocalizedBonus } from '../utils/currency';
 

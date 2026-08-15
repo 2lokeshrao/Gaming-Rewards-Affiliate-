@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform } from '../types';
-import { Users, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, X, ExternalLink, MessageCircle, DollarSign } from 'lucide-react';
+import { Users, Sparkles, CheckCircle2, ArrowRight, X, ExternalLink, MessageCircle, DollarSign } from 'lucide-react';
 
 interface SubPartnerModalProps {
   platforms: GamingPlatform[];

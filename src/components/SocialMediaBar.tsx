@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlobalConfig } from '../types';
-import { Send, Instagram, Video, MessageSquare, Youtube, ExternalLink } from 'lucide-react';
+import { Send, Instagram, Video, MessageSquare, Youtube } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface SocialMediaBarProps {

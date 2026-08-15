@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform, UserGeo } from '../types';
-import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, MapPin, Wallet } from 'lucide-react';
+import { Star, ShieldCheck, Copy, ExternalLink, Flame, Sparkles, Users, QrCode, MessageSquare, Wallet } from 'lucide-react';
 import { UrgencyTimer } from './UrgencyTimer';
 import { AdContainer } from './AdContainer';
 import { useLanguage } from '../i18n/LanguageContext';

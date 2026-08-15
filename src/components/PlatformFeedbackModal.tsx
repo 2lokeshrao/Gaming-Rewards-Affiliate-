@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GamingPlatform, PlatformFeedback } from '../types';
-import { Star, MessageSquare, Send, CheckCircle2, ThumbsUp, ShieldCheck, X, Sparkles } from 'lucide-react';
+import { Star, MessageSquare, Send, CheckCircle2, X, Sparkles } from 'lucide-react';
 
 interface PlatformFeedbackModalProps {
   platform: GamingPlatform | null;

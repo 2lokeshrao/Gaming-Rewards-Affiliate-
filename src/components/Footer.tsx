@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify';
 import React from 'react';
-import { ShieldCheck, Users, Lock } from 'lucide-react';
+import { ShieldCheck, Users } from 'lucide-react';
 import { GamingPlatform, GlobalConfig, CustomPage } from '../types';
 import { SocialMediaBar } from './SocialMediaBar';
 import { useLanguage } from '../i18n/LanguageContext';

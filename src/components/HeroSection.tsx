@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Award, Zap, ChevronDown, Mail, Sparkles, Terminal } from 'lucide-react';
+import { ShieldAlert, Award, Zap, ChevronDown, Mail, Terminal } from 'lucide-react';
 import { AbTestConfig } from '../types';
 
 interface HeroProps {

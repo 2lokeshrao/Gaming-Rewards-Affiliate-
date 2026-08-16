@@ -3,8 +3,8 @@ import DOMPurify from 'isomorphic-dompurify';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
-
-import mysql from 'mysql2/promise';
+import { initializeApp, cert, getApp } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
 import { initialGlobalConfig, initialPlatforms } from './src/data';
@@ -91,104 +91,111 @@ const generalLimiter = rateLimit({
 app.use(generalLimiter);
 
 // Initialize Firebase Securely from Environment Variables (Strict Secrets Management)
+let firestoreDb: any = null;
+try {
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      }),
+    });
+    const dbId = process.env.FIREBASE_DATABASE_ID && process.env.FIREBASE_DATABASE_ID !== '(default)' 
+      ? process.env.FIREBASE_DATABASE_ID 
+      : undefined;
+    firestoreDb = dbId ? getFirestore(getApp(), dbId) : getFirestore();
+    logger.info("Firebase initialized securely from environment variables.");
+  } else {
+    logger.warn("Firebase credentials missing in ENV. Running with local fallback storage.");
+  }
+} catch (e) {
+  logger.error("Firebase init error:", e);
+}
 
-
+function handleFirestoreError(e: any, context: string) {
+  const errMsg = e?.message || String(e);
+  if (errMsg.includes('PERMISSION_DENIED') || errMsg.includes('SERVICE_DISABLED') || errMsg.includes('has not been used')) {
+    logger.warn(`Firestore API is disabled or permissions denied. Falling back to local storage. (${context})`);
+    firestoreDb = null;
+  } else {
+    logger.error(`Firestore ${context} error:`, e);
+  }
+}
 
 // In-Memory Database State
 let statePlatforms: GamingPlatform[] = [...initialPlatforms];
 let stateConfig: GlobalConfig = { ...initialGlobalConfig };
-let stateSubPartners: SubPartnerApplication[] = [];
-let stateCustomPages: any[] = [];
-let stateStats: AnalyticsStats = { totalVisits: 0, totalClicks: 0, totalPromoCopies: 0, totalSubPartnerApps: 0, platformStats: {} };
-let stateTrackLogs: TrackLog[] = [];
 
-// 1. SECURE MYSQL INITIALIZATION
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'affiliate_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
-
-async function initDB() {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS app_data (
-        collection VARCHAR(50),
-        doc_id VARCHAR(100),
-        data LONGTEXT,
-        PRIMARY KEY (collection, doc_id)
-      )
-    `);
-    logger.info('MySQL database tables verified.');
-  } catch (e) {
-    logger.error('MySQL init error:', e);
+let stateSubPartners: SubPartnerApplication[] = [
+  {
+    id: "sub_1",
+    fullName: "Rahul Sharma",
+    email: "rahul.telegram@example.com",
+    whatsapp: "+91 98765 43210",
+    platformId: "1win",
+    platformName: "1Win Casino & Sports",
+    trafficSource: "Telegram Channel (45k Members)",
+    estimatedMonthlyPlayers: "100 - 300 Players / Month",
+    status: "approved",
+    appliedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   }
-}
-initDB();
+];
 
-async function setDoc(collection: string, docId: string, data: any) {
-  try {
-    const jsonData = JSON.stringify(data);
-    await pool.query(
-      'INSERT INTO app_data (collection, doc_id, data) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
-      [collection, docId, jsonData]
-    );
-  } catch (e) { logger.error('MySQL write error:', e); }
-}
-
-async function getCollection(collection: string) {
-  try {
-    const [rows] = await pool.query('SELECT data FROM app_data WHERE collection = ?', [collection]);
-    return (rows as any[]).map(row => JSON.parse(row.data));
-  } catch (e) { 
-    logger.error('MySQL read error:', e); 
-    return []; 
-  }
-}
-
-async function getDoc(collection: string, docId: string) {
-  try {
-    const [rows] = await pool.query('SELECT data FROM app_data WHERE collection = ? AND doc_id = ?', [collection, docId]);
-    const res = rows as any[];
-    return res.length > 0 ? JSON.parse(res[0].data) : null;
-  } catch (e) { 
-    return null; 
-  }
-}
-
-async function updateDoc(collection: string, docId: string, updates: any) {
-  try {
-    const existing = await getDoc(collection, docId);
-    if (existing) {
-      const merged = { ...existing, ...updates };
-      await setDoc(collection, docId, merged);
-    }
-  } catch (e) {}
-}
+const DB_FILE = path.join(process.cwd(), 'database.json');
 
 async function saveState() {
-  // Bulk save fallback (if needed)
+  const data = { statePlatforms, stateConfig, stateSubPartners, stateCustomPages };
+  
+  if (firestoreDb) {
+    try {
+      await firestoreDb.collection('app_state').doc('global').set(data);
+      logger.info("State synchronized to Firestore single source of truth.");
+      return;
+    } catch (e) {
+      handleFirestoreError(e, "save state");
+    }
+  }
+
+  // Fallback to local JSON if Firestore isn't configured
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    logger.error("Save state error:", e);
+  }
 }
 
 async function loadState() {
+  if (firestoreDb) {
+    try {
+      const doc = await firestoreDb.collection('app_state').doc('global').get();
+      if (doc.exists) {
+        const data = doc.data() as any;
+        if (data.statePlatforms) statePlatforms = data.statePlatforms;
+        if (data.stateConfig) stateConfig = data.stateConfig;
+        if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+        if (data.stateCustomPages) stateCustomPages = data.stateCustomPages;
+        logger.info("Loaded state from Firestore.");
+        return;
+      } else {
+        logger.info("No state found in Firestore. Saving defaults.");
+        await saveState();
+        return;
+      }
+    } catch (e) {
+      handleFirestoreError(e, "load state");
+    }
+  }
+
   try {
-    const pSnap = await getCollection('platforms');
-    if (pSnap.length > 0) statePlatforms = pSnap as GamingPlatform[];
-
-    const cSnap = await getDoc('settings', 'globalConfig');
-    if (cSnap) stateConfig = cSnap as GlobalConfig;
-
-    const spSnap = await getCollection('sub_partners');
-    if (spSnap.length > 0) stateSubPartners = spSnap as SubPartnerApplication[];
-
-    const cpSnap = await getCollection('custom_pages');
-    if (cpSnap.length > 0) stateCustomPages = cpSnap as any[];
-
-    logger.info("Loaded state from MySQL Collections.");
+    if (fs.existsSync(DB_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+      if (data.statePlatforms) statePlatforms = data.statePlatforms;
+      if (data.stateConfig) stateConfig = data.stateConfig;
+      if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+      if (data.stateCustomPages) stateCustomPages = data.stateCustomPages;
+      logger.info("Loaded state from local database.json (Fallback)");
+    }
   } catch (e) {
     logger.error("Load state error:", e);
   }
@@ -289,6 +296,47 @@ Format your response exactly as JSON:
     res.status(200).send('ok');
   }
 });
+
+let stateCustomPages: any[] = [];
+let stateStats: AnalyticsStats = {
+  totalVisits: 1820,
+  totalClicks: 840,
+  totalPromoCopies: 490,
+  totalSubPartnerApps: 2,
+  platformStats: {},
+  dailyTrends: [
+    { date: 'Aug 04', clicks: 120, conversions: 40 },
+    { date: 'Aug 05', clicks: 150, conversions: 55 },
+    { date: 'Aug 06', clicks: 180, conversions: 60 },
+    { date: 'Aug 07', clicks: 140, conversions: 45 },
+    { date: 'Aug 08', clicks: 200, conversions: 80 },
+    { date: 'Aug 09', clicks: 250, conversions: 95 },
+    { date: 'Aug 10', clicks: 310, conversions: 120 }
+  ]
+};
+
+let stateTrackLogs: TrackLog[] = [
+  {
+    id: "log_1",
+    eventType: "click",
+    platformId: "1win",
+    platformName: "1Win Casino",
+    timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+    country: "United States",
+    ip: "127.0.0.1",
+    userAgent: "Mozilla/5.0"
+  },
+  {
+    id: "log_2",
+    eventType: "copy",
+    platformId: "mostbet",
+    platformName: "Mostbet Official",
+    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    country: "India",
+    ip: "127.0.0.1",
+    userAgent: "Mozilla/5.0"
+  }
+];
 
 // Helper to detect country from IP / headers
 function getGeoFromRequest(req: Request) {
@@ -441,9 +489,13 @@ app.get('/api/postback/:platform', async (req, res) => {
 
   const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
-    await setDoc('s2s_postbacks', Date.now().toString(), postbackData);
-logger.info(`Saved S2S postback for ${reqPlatform} to MySQL.`);
-if (false) {
+    if (firestoreDb) {
+      await firestoreDb.collection('s2s_postbacks').add({
+        ...postbackData,
+        timestamp: FieldValue.serverTimestamp()
+      });
+      logger.info(`Saved S2S postback for ${reqPlatform} to Firestore.`);
+    } else {
       logger.info("Firestore DB not initialized, postback only in memory");
     }
     
@@ -463,7 +515,7 @@ if (false) {
     // We must return 200 OK so the network knows we received it
     res.status(200).send('OK');
   } catch (error) {
-    logger.error("Error saving postback:", error);
+    handleFirestoreError(error, "saving postback");
     res.status(500).send('Error');
   }
 });
@@ -1118,101 +1170,16 @@ async function startServer() {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      
       const htmlFile = path.join(distPath, 'index.html');
       if (fs.existsSync(htmlFile)) {
         let html = fs.readFileSync(htmlFile, 'utf-8');
         const geo = getGeoFromRequest(req);
-        
-        // --- DYNAMIC SEO ENGINE ---
-        // Defaults
-        let seoTitle = stateConfig.heroHeadline || 'Best Promo Codes';
-        let seoDesc = stateConfig.heroSubheading || 'Find the latest and greatest promo codes.';
-        let injectedSchema = '';
-
-        // Check if viewing a specific platform via path (e.g. /platform/1win)
-        const platformMatch = req.path.match(/^\/platform\/([^/]+)/);
-        if (platformMatch) {
-          const pSlug = platformMatch[1];
-          const platform = statePlatforms.find(p => p.slug === pSlug);
-          if (platform) {
-            seoTitle = `${platform.name} Promo Code ${platform.promoCode} | Get ${platform.bonusText}`;
-            seoDesc = `Claim the exclusive ${platform.name} bonus with promo code ${platform.promoCode}. ${platform.bonusText}. Updated and verified!`.substring(0, 160);
-            
-            // Generate Review Schema
-            const reviewSchema = {
-              "@context": "https://schema.org/",
-              "@type": "Review",
-              "itemReviewed": {
-                "@type": "Organization",
-                "name": platform.name,
-                "image": platform.logoUrl
-              },
-              "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": platform.rating || "5.0",
-                "bestRating": "5"
-              },
-              "author": {
-                "@type": "Organization",
-                "name": "Bonus Promo Code"
-              }
-            };
-            
-            // Generate FAQ Schema
-            const faqSchema = {
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": `What is the best promo code for ${platform.name}?`,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": `The best promo code for ${platform.name} is ${platform.promoCode}. Use it to claim ${platform.bonusText}.`
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": `Is ${platform.name} legit?`,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": `Yes, ${platform.name} is a highly rated platform with a rating of ${platform.rating} out of 5 stars.`
-                  }
-                }
-              ]
-            };
-            
-            injectedSchema = `\n<script type="application/ld+json">${JSON.stringify(reviewSchema)}</script>\n<script type="application/ld+json">${JSON.stringify(faqSchema)}</script>`;
-          }
-        }
-
-        // Check if viewing an article
-        const articleMatch = req.path.match(/^\/blog\/([^/]+)/);
-        if (articleMatch) {
-          const aSlug = articleMatch[1];
-          const article = stateConfig.articles?.find(a => a.slug === aSlug);
-          if (article) {
-            seoTitle = article.metaTitle || article.title;
-            seoDesc = (article.metaDescription || article.content.substring(0, 150)).substring(0, 160);
-          }
-        }
-
-        // Replace SEO Tags in HTML
-        html = html.replace(/<title>.*?<\/title>/, `<title>${seoTitle}</title>`);
-        if (!html.includes('<meta name="description"')) {
-           html = html.replace('<head>', `<head>\n<meta name="description" content="${seoDesc}">`);
-        } else {
-           html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${seoDesc}">`);
-        }
-
         const safePlatforms = statePlatforms.map(p => ({
           id: p.id, slug: p.slug, name: p.name, logoUrl: p.logoUrl,
           rating: p.rating, starRating: p.starRating, badges: p.badges,
           bonusText: p.bonusText, promoCode: p.promoCode, isFeatured: p.isFeatured,
           featuredRank: p.featuredRank, isActive: p.isActive, category: p.category
         }));
-        
         const safeConfig = {
           heroHeadline: stateConfig.heroHeadline, heroSubheading: stateConfig.heroSubheading,
           topBannerTemplate: stateConfig.topBannerTemplate, enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
@@ -1225,11 +1192,9 @@ async function startServer() {
           footerColumns: stateConfig.footerColumns, copyrightText: stateConfig.copyrightText,
           footerDisclaimerText: stateConfig.footerDisclaimerText, autoBlogSettings: stateConfig.autoBlogSettings
         };
-        
         const initialData = { platforms: safePlatforms, config: safeConfig, customPages: stateCustomPages, geo };
-        const scriptTag = `${injectedSchema}<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, '\\u003c')};</script></head>`;
+        const scriptTag = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, '\\u003c')};</script></head>`;
         html = html.replace('</head>', scriptTag);
-        
         res.send(html);
       } else {
         res.status(500).send('Production build not found. Run npm run build.');

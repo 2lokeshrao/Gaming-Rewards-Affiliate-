@@ -170,7 +170,52 @@ async function updateDoc(collection: string, docId: string, updates: any) {
 }
 
 async function saveState() {
-  // Bulk save fallback (if needed)
+  try {
+    // 1. Sync Platforms
+    if (Array.isArray(statePlatforms)) {
+      const [pRows] = await pool.query('SELECT doc_id FROM app_data WHERE collection = ?', ['platforms']);
+      const existingIds = (pRows as any[]).map(r => r.doc_id);
+      const newIds = statePlatforms.map(p => p.id);
+      const toDelete = existingIds.filter(id => !newIds.includes(id));
+      for (const id of toDelete) {
+        await pool.query('DELETE FROM app_data WHERE collection = ? AND doc_id = ?', ['platforms', id]);
+      }
+      for (const p of statePlatforms) await setDoc('platforms', p.id, p);
+    }
+
+    // 2. Sync Config
+    if (stateConfig) {
+      await setDoc('settings', 'globalConfig', stateConfig);
+    }
+
+    // 3. Sync Custom Pages
+    if (Array.isArray(stateCustomPages)) {
+      const [cpRows] = await pool.query('SELECT doc_id FROM app_data WHERE collection = ?', ['custom_pages']);
+      const existingCpIds = (cpRows as any[]).map(r => r.doc_id);
+      const newCpIds = stateCustomPages.map(cp => cp.slug);
+      const toDeleteCp = existingCpIds.filter(id => !newCpIds.includes(id));
+      for (const id of toDeleteCp) {
+        await pool.query('DELETE FROM app_data WHERE collection = ? AND doc_id = ?', ['custom_pages', id]);
+      }
+      for (const cp of stateCustomPages) await setDoc('custom_pages', cp.slug, cp);
+    }
+
+    // 4. Sync Sub Partners
+    if (Array.isArray(stateSubPartners)) {
+      const [spRows] = await pool.query('SELECT doc_id FROM app_data WHERE collection = ?', ['sub_partners']);
+      const existingSpIds = (spRows as any[]).map(r => r.doc_id);
+      const newSpIds = stateSubPartners.map(sp => sp.id);
+      const toDeleteSp = existingSpIds.filter(id => !newSpIds.includes(id));
+      for (const id of toDeleteSp) {
+        await pool.query('DELETE FROM app_data WHERE collection = ? AND doc_id = ?', ['sub_partners', id]);
+      }
+      for (const sp of stateSubPartners) await setDoc('sub_partners', sp.id, sp);
+    }
+
+    logger.info("Successfully synced all in-memory state to MySQL database.");
+  } catch (e) {
+    logger.error("saveState error:", e);
+  }
 }
 
 async function loadState() {

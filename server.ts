@@ -175,12 +175,29 @@ async function saveState() {
 
 async function loadState() {
   try {
+    // 1. Load or Seed Platforms
     const pSnap = await getCollection('platforms');
-    if (pSnap.length > 0) statePlatforms = pSnap as GamingPlatform[];
+    if (pSnap.length > 0) {
+      statePlatforms = pSnap as GamingPlatform[];
+    } else {
+      logger.info("Database empty: Seeding initial platforms...");
+      for (const p of initialPlatforms) {
+        await setDoc('platforms', p.id, p);
+      }
+      statePlatforms = [...initialPlatforms];
+    }
 
+    // 2. Load or Seed Config
     const cSnap = await getDoc('settings', 'globalConfig');
-    if (cSnap) stateConfig = cSnap as GlobalConfig;
+    if (cSnap) {
+      stateConfig = cSnap as GlobalConfig;
+    } else {
+      logger.info("Database empty: Seeding initial global config...");
+      await setDoc('settings', 'globalConfig', initialGlobalConfig);
+      stateConfig = { ...initialGlobalConfig };
+    }
 
+    // 3. Load Sub Partners & Pages
     const spSnap = await getCollection('sub_partners');
     if (spSnap.length > 0) stateSubPartners = spSnap as SubPartnerApplication[];
 

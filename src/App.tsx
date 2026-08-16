@@ -28,8 +28,6 @@ const AiArticleView = lazy(() => import('./components/AiArticleView').then(m => 
 const WalletArticlePage = lazy(() => import('./components/WalletArticlePage').then(m => ({ default: m.WalletArticlePage })));
 const FinancialHubPage = lazy(() => import('./components/FinancialHubPage').then(m => ({ default: m.FinancialHubPage })));
 const CustomPageView = lazy(() => import('./components/CustomPageView').then(m => ({ default: m.CustomPageView })));
-const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
-const TermsConditions = lazy(() => import('./components/TermsConditions').then(m => ({ default: m.TermsConditions })));
 const PwaInstallModal = lazy(() => import('./components/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
 const ReferFriendModal = lazy(() => import('./components/ReferFriendModal').then(m => ({ default: m.ReferFriendModal })));
 const OfferGrid = lazy(() => import('./components/OfferGrid').then(m => ({ default: m.OfferGrid })));
@@ -88,16 +86,8 @@ export default function App() {
     let desc = "Get official 500% Welcome Bonus promo codes for top gaming platforms including 1Win, Mostbet, Stake, BC.Game, Pin-Up Casino, Parimatch, and Melbet. Use promo code MAXBOOST500 to claim instant cashback & 200 free spins!";
     let canonical = `https://bonuspromocode.in${currentPath === '/' ? '' : currentPath}`;
     
-    if (currentPath === '/privacy-policy') {
-      title = "Privacy Policy | BonusPromoCode";
-      desc = "Privacy policy and data handling guidelines for BonusPromoCode.";
-    } else if (currentPath === '/terms') {
-      title = "Terms & Conditions | BonusPromoCode";
-      desc = "Terms of service and conditions for using our gaming promo codes and affiliate portal.";
-    }
-    
     // Only inject for these top level routes, dynamic routes handle their own
-    if (['/', '/privacy-policy', '/terms'].includes(currentPath)) {
+    if (currentPath === '/') {
       injectSeoTags(title, desc, canonical, 'https://bonuspromocode.in/logos/1win.png');
     }
   }, [currentPath]);
@@ -482,6 +472,24 @@ export default function App() {
     }
   };
 
+  const handleSaveCustomPagesFromAdmin = async (updatedPages: CustomPage[]) => {
+    setCustomPages(updatedPages);
+    if (!adminToken) return;
+
+    try {
+      await fetch('/api/admin/custom-pages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ pages: updatedPages })
+      });
+    } catch (err) {
+      console.error('Failed to save custom pages:', err);
+    }
+  };
+
   const scrollToOffers = () => {
     const elem = document.getElementById('offers-list');
     if (elem) elem.scrollIntoView({ behavior: 'smooth' });
@@ -507,7 +515,7 @@ export default function App() {
         onSaveConfig={handleSaveConfigFromAdmin}
         onUpdateSubPartnerStatus={handleUpdateSubPartnerStatus}
         customPages={customPages}
-        onSaveCustomPages={setCustomPages}
+        onSaveCustomPages={handleSaveCustomPagesFromAdmin}
       />
       </Suspense>
     );
@@ -609,24 +617,6 @@ export default function App() {
           adminToken={adminToken}
           setViewingAdmin={setViewingAdmin}
         />
-      </>
-    );
-  }
-
-  if (currentPath === '/privacy-policy') {
-    return (
-      <>
-        <TopLoadingBar isLoading={isNavigating} />
-        <Suspense fallback={<div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Policy...</div>}><PrivacyPolicy /></Suspense>
-      </>
-    );
-  }
-
-  if (currentPath === '/terms') {
-    return (
-      <>
-        <TopLoadingBar isLoading={isNavigating} />
-        <Suspense fallback={<div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Terms...</div>}><TermsConditions /></Suspense>
       </>
     );
   }

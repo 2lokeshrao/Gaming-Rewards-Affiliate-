@@ -7,7 +7,7 @@ import path from 'path';
 import mysql from 'mysql2/promise';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
-import { initialGlobalConfig, initialPlatforms } from './src/data';
+import { initialGlobalConfig, initialPlatforms, initialCustomPages } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
@@ -246,8 +246,17 @@ async function loadState() {
     const spSnap = await getCollection('sub_partners');
     if (spSnap.length > 0) stateSubPartners = spSnap as SubPartnerApplication[];
 
-    const cpSnap = await getCollection('custom_pages');
-    if (cpSnap.length > 0) stateCustomPages = cpSnap as any[];
+        const cpSnap = await getCollection('custom_pages');
+    stateCustomPages = cpSnap as any[];
+    
+    // Seed missing default pages
+    for (const initCp of initialCustomPages) {
+      if (!stateCustomPages.find(cp => cp.slug === initCp.slug)) {
+        logger.info(`Database missing custom page ${initCp.slug}: Seeding...`);
+        await setDoc('custom_pages', initCp.slug, initCp);
+        stateCustomPages.push(initCp);
+      }
+    }
 
     logger.info("Loaded state from MySQL Collections.");
   } catch (e) {

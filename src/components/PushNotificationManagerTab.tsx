@@ -118,7 +118,7 @@ export const PushNotificationManagerTab: React.FC<PushNotificationManagerTabProp
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs border border-purple-500/30 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-400" />
-              FIREBASE CLOUD MESSAGING (FCM)
+              PUSH NOTIFICATIONS
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs border border-emerald-500/30 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />

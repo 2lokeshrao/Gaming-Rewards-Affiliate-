@@ -90,7 +90,6 @@ const generalLimiter = rateLimit({
 });
 app.use(generalLimiter);
 
-// Initialize Firebase Securely from Environment Variables (Strict Secrets Management)
 
 
 
@@ -443,9 +442,6 @@ app.get('/api/postback/:platform', async (req, res) => {
   try {
     await setDoc('s2s_postbacks', Date.now().toString(), postbackData);
 logger.info(`Saved S2S postback for ${reqPlatform} to MySQL.`);
-if (false) {
-      logger.info("Firestore DB not initialized, postback only in memory");
-    }
     
     // Also push to local state for temporary viewing in admin
     stateTrackLogs.unshift({

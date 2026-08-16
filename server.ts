@@ -212,6 +212,72 @@ app.get('/api/cdn/images/:platformId.webp', async (req, res) => {
   }
 });
 
+// --- SENTRY WEBHOOK TO GEMINI AI ---
+app.post('/api/sentry-webhook', async (req, res) => {
+  try {
+    // Sentry sends a ping request to verify the webhook URL
+    if (req.header('Sentry-Hook-Resource') === 'installation' || req.body?.action === 'ping' || !req.body?.data?.event) {
+      return res.status(200).send('ok');
+    }
+
+    const event = req.body.data.event;
+    const errorTitle = event.title || 'Unknown Error';
+    const exception = event.exception?.values?.[0] || {};
+    const stacktrace = exception.stacktrace?.frames || [];
+    const tags = event.tags || [];
+
+    logger.info(`Received Sentry webhook for error: ${errorTitle}`);
+
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const ai = new GoogleGenAI({ 
+          apiKey: process.env.GEMINI_API_KEY,
+          httpOptions: {
+            headers: { 'User-Agent': 'aistudio-build' }
+          }
+        });
+        
+        const systemPrompt = `You are an expert software engineer analyzing a Sentry error report.
+Determine the root cause, suggest a code fix (diff/patch), and categorize the severity (Critical, Warning, Info).
+Error Title: ${errorTitle}
+Exception Type: ${exception.type || 'N/A'}
+Exception Value: ${exception.value || 'N/A'}
+Stack Trace: ${JSON.stringify(stacktrace.slice(-5))}
+Tags: ${JSON.stringify(tags)}
+
+Format your response exactly as JSON:
+{
+  "severity": "Critical|Warning|Info",
+  "rootCause": "Short explanation",
+  "suggestedFix": "Code patch or action"
+}`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: systemPrompt,
+          config: {
+            responseMimeType: 'application/json',
+          }
+        });
+
+        const result = response.text;
+        if (result) {
+          logger.info(`Sentry Error Analysis for [${errorTitle}]:`, JSON.parse(result));
+        }
+      } catch (aiError) {
+        logger.error('Error analyzing Sentry event with Gemini:', aiError);
+      }
+    } else {
+      logger.warn('GEMINI_API_KEY not configured. Skipping AI analysis for Sentry error.');
+    }
+
+    res.status(200).send('ok');
+  } catch (error) {
+    logger.error('Error processing Sentry webhook:', error);
+    // Always return 200 to prevent Sentry from retrying endlessly or disabling the webhook
+    res.status(200).send('ok');
+  }
+});
 
 let stateCustomPages: any[] = [];
 let stateStats: AnalyticsStats = {

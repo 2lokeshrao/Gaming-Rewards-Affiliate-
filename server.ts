@@ -143,7 +143,7 @@ let stateSubPartners: SubPartnerApplication[] = [
 const DB_FILE = path.join(process.cwd(), 'database.json');
 
 async function saveState() {
-  const data = { statePlatforms, stateConfig, stateSubPartners };
+  const data = { statePlatforms, stateConfig, stateSubPartners, stateCustomPages };
   
   if (firestoreDb) {
     try {
@@ -172,6 +172,7 @@ async function loadState() {
         if (data.statePlatforms) statePlatforms = data.statePlatforms;
         if (data.stateConfig) stateConfig = data.stateConfig;
         if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+        if (data.stateCustomPages) stateCustomPages = data.stateCustomPages;
         logger.info("Loaded state from Firestore.");
         return;
       } else {
@@ -190,6 +191,7 @@ async function loadState() {
       if (data.statePlatforms) statePlatforms = data.statePlatforms;
       if (data.stateConfig) stateConfig = data.stateConfig;
       if (data.stateSubPartners) stateSubPartners = data.stateSubPartners;
+      if (data.stateCustomPages) stateCustomPages = data.stateCustomPages;
       logger.info("Loaded state from local database.json (Fallback)");
     }
   } catch (e) {
@@ -267,7 +269,7 @@ Format your response exactly as JSON:
 }`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.7-flash',
           contents: systemPrompt,
           config: {
             responseMimeType: 'application/json',
@@ -625,6 +627,7 @@ app.patch('/api/admin/sub-partners/:id', verifyJwtToken, (req, res) => {
 
   if (status) {
     appItem.status = status;
+    saveState();
   }
 
   res.json({ success: true, application: appItem });
@@ -646,6 +649,7 @@ app.post('/api/admin/custom-pages', verifyJwtToken, express.json(), (req, res) =
   const { pages } = req.body;
   if (Array.isArray(pages)) {
     stateCustomPages = pages;
+    saveState();
   }
   res.json({ success: true });
 });
@@ -654,6 +658,7 @@ app.post('/api/admin/config', verifyJwtToken, (req, res) => {
   const { config } = req.body;
   if (config) {
     stateConfig = { ...stateConfig, ...config };
+    saveState();
     return res.json({ success: true, config: stateConfig });
   }
   return res.status(400).json({ error: 'Invalid config payload' });
@@ -971,7 +976,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
     const prompt = `You are an expert iGaming SEO copywriter. Generate SEO metadata (title, description, keywords) and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Focus on bonuses, withdrawals, and reliability. IMPORTANT: Keep the title strictly under 60 characters and the description strictly under 160 characters to comply with Google SEO guidelines.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-3.7-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -1039,7 +1044,7 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.7-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -1053,8 +1058,7 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
             tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: '5-7 relevant SEO tags/keywords' }
           },
           required: ['title', 'metaTitle', 'metaDescription', 'content', 'tags']
-        },
-        tools: [{ googleSearch: {} }] // Enable Google Search Grounding for trending info
+        }
       }
     });
 
@@ -1224,7 +1228,7 @@ const autoblogInterval = setInterval(async () => {
     }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.7-flash',
       contents: prompt,
       config: {
         responseMimeType: "application/json",

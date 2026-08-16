@@ -227,12 +227,25 @@ export interface UserGeo {
   flag: string;
 }
 
+export interface AffiliateLink {
+  id: string;
+  brandName: string;
+  logoUrl?: string;
+  title: string;
+  description?: string;
+  url: string;
+  buttonText?: string;
+  badgeText?: string;
+  rating?: number;
+}
+
 export interface CustomPage {
   id: string;
   slug: string;
   title: string;
   content: string;
   isActive: boolean;
+  affiliateLinks?: AffiliateLink[];
 }
 
 export interface AIArticle {
@@ -250,7 +263,8 @@ export interface AIArticle {
   author: string;
   tags: string[];
   views: number;
-  status?: 'draft' | 'published';
+  status?: "draft" | "published";
+  affiliateLinks?: AffiliateLink[];
 }
 
 export interface FooterLink {

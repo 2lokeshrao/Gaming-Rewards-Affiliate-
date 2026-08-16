@@ -1,5 +1,6 @@
 import React, { Suspense, useState } from 'react';
 const MDEditor = React.lazy(() => import('@uiw/react-md-editor'));
+import { AffiliateLinksEditor } from "./AffiliateLinksEditor";
 import { GlobalConfig, GamingPlatform, AIArticle } from '../types';
 import { Sparkles, Save, Edit3, Trash2, FileText, RefreshCw } from 'lucide-react';
 
@@ -280,6 +281,14 @@ export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config
                   <option value="draft">Draft (Hidden)</option>
                 </select>
               </div>
+              
+              <div className="md:col-span-2">
+                <AffiliateLinksEditor 
+                  links={editingArticle.affiliateLinks} 
+                  onChange={(links) => setEditingArticle({...editingArticle, affiliateLinks: links})} 
+                />
+              </div>
+              
               <div className="md:col-span-2" data-color-mode="dark">
 
                   <MDEditor

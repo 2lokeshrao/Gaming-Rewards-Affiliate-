@@ -3,6 +3,7 @@ import { GamingPlatform, GlobalConfig, CustomPage, AIArticle } from '../types';
 import { BackButton } from './BackButton';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
+import { AffiliateLinkCard } from './AffiliateLinkCard';
 import { Footer } from './Footer';
 import { Eye, Calendar, Tag, ChevronRight } from 'lucide-react';
 const Markdown = React.lazy(() => import('react-markdown'));
@@ -145,6 +146,17 @@ if (!targetPlatform) return null;
                         <span key={tag} className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:border-slate-700 transition-colors cursor-pointer">
                           #{tag}
                         </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              
+                {article.affiliateLinks && article.affiliateLinks.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-slate-800">
+                    <h3 className="text-xl font-black text-white mb-6">Recommended Offers</h3>
+                    <div className="space-y-4">
+                      {article.affiliateLinks.map((link) => (
+                        <AffiliateLinkCard key={link.id} link={link} />
                       ))}
                     </div>
                   </div>

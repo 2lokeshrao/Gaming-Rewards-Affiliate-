@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { CustomPage, GamingPlatform, GlobalConfig } from '../types';
 import { ChevronRight } from 'lucide-react';
 import { Sidebar } from './Sidebar';
+import { AffiliateLinkCard } from './AffiliateLinkCard';
 
 export const CustomPageView: React.FC<{ 
   page: CustomPage;

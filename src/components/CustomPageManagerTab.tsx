@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { CustomPage, GlobalConfig } from '../types';
 import { Plus, Trash2, Edit3, Save, Globe } from 'lucide-react';
+import { AffiliateLinksEditor } from './AffiliateLinksEditor';
 const MDEditor = React.lazy(() => import('@uiw/react-md-editor'));
 
 interface CustomPageManagerTabProps {
@@ -84,6 +85,14 @@ export const CustomPageManagerTab: React.FC<CustomPageManagerTabProps> = ({ page
                 className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" 
               />
             </div>
+          </div>
+          
+          
+          <div className="mb-6">
+            <AffiliateLinksEditor 
+              links={editingPage.affiliateLinks} 
+              onChange={(links) => setEditingPage({...editingPage, affiliateLinks: links})} 
+            />
           </div>
           
           <div className="mb-4" data-color-mode="dark">

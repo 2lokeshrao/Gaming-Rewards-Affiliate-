@@ -15,9 +15,17 @@ export default defineConfig(() => {
       emptyOutDir: false,
       minify: 'esbuild' as const,
       cssMinify: true,
-      target: 'esnext',
+      target: 'es2022',
       rollupOptions: {
-        output: {}
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-motion': ['motion'],
+            'vendor-ui': ['lucide-react', 'canvas-confetti'],
+            'vendor-markdown': ['react-markdown', 'rehype-sanitize', '@uiw/react-md-editor'],
+            'vendor-charts': ['recharts']
+          }
+        }
       },
       chunkSizeWarningLimit: 1000
     },

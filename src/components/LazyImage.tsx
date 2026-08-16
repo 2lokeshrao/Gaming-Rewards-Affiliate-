@@ -17,7 +17,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
       )}
       
       <img loading={priority ? "eager" : "lazy"}
-        src={src}
+        src={src.startsWith('http') ? `/api/image-optimize?w=400&q=75&url=${encodeURIComponent(src)}` : src}
         alt={alt}
         
         decoding="async"

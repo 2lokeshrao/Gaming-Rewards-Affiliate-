@@ -43,6 +43,9 @@ if (process.env.SENTRY_DSN) {
 
 const app = express();
 
+// Trust reverse proxy (Cloud Run, load balancer) for rate limiting and X-Forwarded-For
+app.set("trust proxy", true);
+
 // Sentry Request Handler
 if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);

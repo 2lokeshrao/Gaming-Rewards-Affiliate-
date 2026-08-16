@@ -274,21 +274,29 @@ app.get('/api/cdn/images/:platformId.webp', async (req, res) => {
     return res.status(404).json({ error: 'Image not found' });
   }
 
-  if (platform.logoUrl.startsWith('data:image/')) {
-    try {
+  try {
+    let buffer;
+    if (platform.logoUrl.startsWith('data:image/')) {
       const base64Data = platform.logoUrl.split(',')[1];
-      const buffer = Buffer.from(base64Data, 'base64');
-      const webpBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
-      
-      res.setHeader('Content-Type', 'image/webp');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      res.send(webpBuffer);
-    } catch (e) {
-      logger.error("Image optimization error:", e);
-      res.status(500).send('Error optimizing image');
+      buffer = Buffer.from(base64Data, 'base64');
+    } else {
+      const response = await fetch(platform.logoUrl);
+      if (!response.ok) throw new Error('Failed to fetch external image');
+      const arrayBuffer = await response.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
     }
-  } else {
-    // If it's already an external URL, just redirect to it
+    
+    const webpBuffer = await sharp(buffer)
+      .resize({ width: 128, withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+      
+    res.setHeader('Content-Type', 'image/webp');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(webpBuffer);
+  } catch (e) {
+    logger.error("Image optimization error:", e);
+    // Fallback to original
     res.redirect(platform.logoUrl);
   }
 });

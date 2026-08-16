@@ -13,21 +13,29 @@ export default defineConfig(() => {
     },
     build: {
       emptyOutDir: false,
-      minify: 'esbuild' as const,
-      cssMinify: true,
-      target: 'es2022',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          passes: 2,
+        },
+        format: {
+          comments: false,
+        }
+      },
+      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
       rollupOptions: {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom'],
-            'vendor-motion': ['motion'],
             'vendor-ui': ['lucide-react', 'canvas-confetti'],
             'vendor-markdown': ['react-markdown', 'rehype-sanitize', '@uiw/react-md-editor'],
             'vendor-charts': ['recharts']
           }
         }
       },
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1500
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',

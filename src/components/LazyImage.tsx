@@ -11,16 +11,16 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '', 
 
   return (
     <div className={`relative overflow-hidden shrink-0 bg-slate-800 ${className.replace(/object-cover|shrink-0|bg-slate-800/g, '').trim()}`}>
-      {/* Low quality placeholder or blur background */}
       {!isLoaded && (
-        <div className="absolute inset-0 bg-slate-800  border border-slate-700/50 rounded-[inherit]" />
+        <div className="absolute inset-0 bg-slate-800 border border-slate-700/50 rounded-[inherit]" />
       )}
       
-      <img loading={priority ? "eager" : "lazy"}
-        src={src.startsWith('http') ? `/api/image-optimize?w=400&q=75&url=${encodeURIComponent(src)}` : src}
+      <img 
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        src={src}
         alt={alt}
-        
-        decoding="async"
+        decoding={priority ? "sync" : "async"}
         onLoad={() => setIsLoaded(true)}
         onError={(e) => {
           e.currentTarget.onerror = null;

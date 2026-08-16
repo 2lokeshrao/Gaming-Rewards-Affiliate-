@@ -1059,14 +1059,45 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     });
 
     if (!response.text) {
+      logger.error('AI returned empty response for article generation');
       return res.status(500).json({ error: 'AI returned empty response' });
     }
     
-    const generated = JSON.parse(response.text);
+    let generated;
+    try {
+      generated = JSON.parse(response.text);
+    } catch (parseError: any) {
+      logger.error('JSON parsing failed for AI response:', {
+        error: parseError.message,
+        rawText: response.text
+      });
+      return res.status(500).json({ error: 'Failed to parse AI response as JSON.', details: parseError.message });
+    }
+
     res.json(generated);
   } catch (error: any) {
-    logger.error('Error generating AI article:', error);
-    res.status(500).json({ error: 'Failed to generate article: ' + error.message });
+    logger.error('Error generating AI article API call:', {
+      message: error.message,
+      name: error.name,
+      status: error.status || error.code,
+      stack: error.stack
+    });
+
+    let statusCode = error.status || error.code || 500;
+    let errorMsg = 'Failed to generate article: ' + (error.message || 'Unknown error');
+
+    if (statusCode === 401 || error.message?.includes('API key')) {
+      errorMsg = 'AI API authentication failed (invalid or expired key).';
+      statusCode = 401;
+    } else if (statusCode === 429 || error.message?.includes('quota')) {
+      errorMsg = 'AI API rate limit or quota exceeded.';
+      statusCode = 429;
+    } else if (error.message?.includes('timeout') || error.name === 'AbortError') {
+      errorMsg = 'AI API request timed out.';
+      statusCode = 504;
+    }
+
+    res.status(statusCode).json({ error: errorMsg, details: error.message });
   }
 });
 

@@ -9,6 +9,11 @@ import * as Sentry from '@sentry/react';
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
+    ignoreErrors: [
+      'WebSocket closed without opened',
+      'failed to connect to websocket',
+      'WebSocket connection to'
+    ],
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({

@@ -1,3 +1,4 @@
+import './instrument';
 import DOMPurify from 'isomorphic-dompurify';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
@@ -13,7 +14,6 @@ import compression from 'compression';
 import fs from 'fs';
 import { exec } from 'child_process';
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import winston from 'winston';
 import sharp from 'sharp';
 
@@ -29,28 +29,14 @@ const logger = winston.createLogger({
   ]
 });
 
-// Initialize Sentry for Node
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [
-      nodeProfilingIntegration(),
-    ],
-    tracesSampleRate: 1.0,
-    profilesSampleRate: 1.0,
-  });
-  logger.info("Sentry Node initialized.");
-}
+// Sentry is initialized in instrument.ts
 
 const app = express();
 
 // Trust reverse proxy (Cloud Run, load balancer) for rate limiting and X-Forwarded-For
 app.set("trust proxy", 1);
 
-// Sentry Request Handler
-if (process.env.SENTRY_DSN) {
-  Sentry.setupExpressErrorHandler(app);
-}
+// Sentry Express handler moved to the end of routes
 
 app.use(compression({
   level: 6,
@@ -1286,6 +1272,11 @@ const autoblogInterval = setInterval(async () => {
 
   await killPort(PORT);
   
+  // Setup Sentry error handler BEFORE any other error middlewares, but AFTER all routes
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
+
   const server = app.listen(PORT, '0.0.0.0', () => {
     logger.info(`Affiliate Hub App listening on port ${PORT}`);
   });

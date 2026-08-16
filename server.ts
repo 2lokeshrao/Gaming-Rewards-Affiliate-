@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
-import * as admin from 'firebase-admin';
+import { initializeApp, cert, getApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -11,6 +11,7 @@ import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerAppli
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import fs from 'fs';
+import { exec } from 'child_process';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import winston from 'winston';
@@ -91,8 +92,8 @@ app.use(generalLimiter);
 let firestoreDb: any = null;
 try {
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
+    initializeApp({
+      credential: cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -101,13 +102,23 @@ try {
     const dbId = process.env.FIREBASE_DATABASE_ID && process.env.FIREBASE_DATABASE_ID !== '(default)' 
       ? process.env.FIREBASE_DATABASE_ID 
       : undefined;
-    firestoreDb = dbId ? getFirestore(admin.app(), dbId) : getFirestore();
+    firestoreDb = dbId ? getFirestore(getApp(), dbId) : getFirestore();
     logger.info("Firebase initialized securely from environment variables.");
   } else {
     logger.warn("Firebase credentials missing in ENV. Running with local fallback storage.");
   }
 } catch (e) {
   logger.error("Firebase init error:", e);
+}
+
+function handleFirestoreError(e: any, context: string) {
+  const errMsg = e?.message || String(e);
+  if (errMsg.includes('PERMISSION_DENIED') || errMsg.includes('SERVICE_DISABLED') || errMsg.includes('has not been used')) {
+    logger.warn(`Firestore API is disabled or permissions denied. Falling back to local storage. (${context})`);
+    firestoreDb = null;
+  } else {
+    logger.error(`Firestore ${context} error:`, e);
+  }
 }
 
 // In-Memory Database State
@@ -140,7 +151,7 @@ async function saveState() {
       logger.info("State synchronized to Firestore single source of truth.");
       return;
     } catch (e) {
-      logger.error("Firestore save state error:", e);
+      handleFirestoreError(e, "save state");
     }
   }
 
@@ -169,7 +180,7 @@ async function loadState() {
         return;
       }
     } catch (e) {
-      logger.error("Firestore load state error:", e);
+      handleFirestoreError(e, "load state");
     }
   }
 
@@ -501,7 +512,7 @@ app.get('/api/postback/:platform', async (req, res) => {
     // We must return 200 OK so the network knows we received it
     res.status(200).send('OK');
   } catch (error) {
-    logger.error('Error saving postback:', error);
+    handleFirestoreError(error, "saving postback");
     res.status(500).send('Error');
   }
 });
@@ -1061,7 +1072,8 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
 
 // Vite / Static Files Setup
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  const isProduction = process.env.NODE_ENV === 'production' || (typeof __filename !== 'undefined' && __filename.endsWith('.cjs'));
+  if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -1225,8 +1237,34 @@ const autoblogInterval = setInterval(async () => {
   }
 }, (stateConfig.autoBlogSettings?.intervalHours || 24) * 60 * 60 * 1000); // Default to checking daily, but interval updates when hours change.
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const killPort = (port: string | number) => {
+    return new Promise<void>((resolve) => {
+      exec(`lsof -t -i:${port} | xargs kill -9`, (err1) => {
+        if (err1) {
+          exec(`fuser -k ${port}/tcp`, () => resolve());
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
+  await killPort(PORT);
+  
+  const server = app.listen(PORT, '0.0.0.0', () => {
     logger.info(`Affiliate Hub App listening on port ${PORT}`);
+  });
+
+  server.on('error', (e: any) => {
+    if (e.code === 'EADDRINUSE') {
+      logger.error(`Port ${PORT} is in use, retrying...`);
+      setTimeout(() => {
+        server.close();
+        server.listen(PORT, '0.0.0.0');
+      }, 1000);
+    } else {
+      logger.error('Server error:', e);
+    }
   });
 }
 

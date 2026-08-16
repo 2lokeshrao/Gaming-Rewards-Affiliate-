@@ -567,6 +567,7 @@ app.get('/api/data', (req, res) => {
   res.json({
     platforms: safePlatforms,
     config: safeConfig,
+    customPages: stateCustomPages,
     geo
   });
 });
@@ -1171,7 +1172,30 @@ async function startServer() {
       res.setHeader('Expires', '0');
       const htmlFile = path.join(distPath, 'index.html');
       if (fs.existsSync(htmlFile)) {
-        res.sendFile(htmlFile);
+        let html = fs.readFileSync(htmlFile, 'utf-8');
+        const geo = getGeoFromRequest(req);
+        const safePlatforms = statePlatforms.map(p => ({
+          id: p.id, slug: p.slug, name: p.name, logoUrl: p.logoUrl,
+          rating: p.rating, starRating: p.starRating, badges: p.badges,
+          bonusText: p.bonusText, promoCode: p.promoCode, isFeatured: p.isFeatured,
+          featuredRank: p.featuredRank, isActive: p.isActive, category: p.category
+        }));
+        const safeConfig = {
+          heroHeadline: stateConfig.heroHeadline, heroSubheading: stateConfig.heroSubheading,
+          topBannerTemplate: stateConfig.topBannerTemplate, enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
+          subPartnerHeadline: stateConfig.subPartnerHeadline, customCoupons: stateConfig.customCoupons,
+          approvedFeedbacks: stateConfig.approvedFeedbacks, pushNotifications: stateConfig.pushNotifications,
+          abTestConfig: stateConfig.abTestConfig, sidebarAdHtml: stateConfig.sidebarAdHtml,
+          telegramUrl: stateConfig.telegramUrl, instagramUrl: stateConfig.instagramUrl,
+          tiktokUrl: stateConfig.tiktokUrl, whatsappGroupUrl: stateConfig.whatsappGroupUrl,
+          youtubeUrl: stateConfig.youtubeUrl, articles: stateConfig.articles,
+          footerColumns: stateConfig.footerColumns, copyrightText: stateConfig.copyrightText,
+          footerDisclaimerText: stateConfig.footerDisclaimerText, autoBlogSettings: stateConfig.autoBlogSettings
+        };
+        const initialData = { platforms: safePlatforms, config: safeConfig, customPages: stateCustomPages, geo };
+        const scriptTag = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, '\\u003c')};</script></head>`;
+        html = html.replace('</head>', scriptTag);
+        res.send(html);
       } else {
         res.status(500).send('Production build not found. Run npm run build.');
       }

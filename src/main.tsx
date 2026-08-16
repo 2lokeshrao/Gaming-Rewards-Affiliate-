@@ -3,28 +3,28 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './i18n/LanguageContext';
-import * as Sentry from '@sentry/react';
-
-// Initialize Sentry for React if DSN is provided
+// Initialize Sentry dynamically to avoid blocking main thread
 if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    ignoreErrors: [
-      'WebSocket closed without opened',
-      'failed to connect to websocket',
-      'WebSocket connection to'
-    ],
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        maskAllText: false,
-        blockAllMedia: false,
-      }),
-    ],
-    tracesSampleRate: 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-  });
+  import('@sentry/react').then((Sentry) => {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      ignoreErrors: [
+        'WebSocket closed without opened',
+        'failed to connect to websocket',
+        'WebSocket connection to'
+      ],
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration({
+          maskAllText: false,
+          blockAllMedia: false,
+        }),
+      ],
+      tracesSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    });
+  }).catch(console.error);
 }
 
 // Safely suppress benign third-party browser extension errors (e.g. MetaMask, Web3 wallets, Chrome extensions)

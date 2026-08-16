@@ -64,14 +64,15 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  const [platforms, setPlatforms] = useState<GamingPlatform[]>([]);
+  const initialData = (typeof window !== 'undefined' && (window as any).__INITIAL_DATA__) || {};
+  const [platforms, setPlatforms] = useState<GamingPlatform[]>(initialData.platforms || []);
 
-  const [config, setConfig] = useState<GlobalConfig | null>(null);
+  const [config, setConfig] = useState<GlobalConfig | null>(initialData.config || null);
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [logs, setLogs] = useState<TrackLog[]>([]);
-  const [customPages, setCustomPages] = useState<CustomPage[]>([]);
+  const [customPages, setCustomPages] = useState<CustomPage[]>(initialData.customPages || []);
   const [subPartners, setSubPartners] = useState<SubPartnerApplication[]>([]);
-  const [geo, setGeo] = useState<UserGeo>({
+  const [geo, setGeo] = useState<UserGeo>(initialData.geo || {
     country: 'United States',
     countryCode: 'US',
     city: 'Detecting...',
@@ -79,7 +80,7 @@ export default function App() {
     flag: '🇺🇸'
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialData.config);
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
@@ -165,6 +166,28 @@ export default function App() {
   const loadData = async () => {
     try {
       const token = adminToken;
+      
+      // If we have initial data injected and we are not an admin, we can skip the fetch to save a network request!
+      if (!token && initialData.config) {
+        setLoading(false);
+        // We still run localization check from initialData.geo
+        if (initialData.geo) {
+          const langMap: Record<string, string> = {
+            IN: 'hi', BR: 'pt', BD: 'bn', RU: 'ru', ID: 'id', PK: 'ur', TR: 'tr', ES: 'es', MX: 'es'
+          };
+          const targetLang = langMap[initialData.geo.countryCode];
+          if (targetLang) {
+            const cookieVal = `/en/${targetLang}`;
+            if (!document.cookie.includes(`googtrans=${cookieVal}`)) {
+              document.cookie = `googtrans=${cookieVal}; path=/`;
+              document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname}`;
+              setTimeout(() => { window.location.reload(); }, 500);
+            }
+          }
+        }
+        return;
+      }
+
       let res;
       let usedAdmin = false;
       if (token) {

@@ -15,16 +15,9 @@ export default defineConfig(() => {
       emptyOutDir: false,
       minify: 'esbuild' as const,
       cssMinify: true,
-      target: 'es2022',
+      target: 'esnext',
       rollupOptions: {
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-ui': ['lucide-react', 'react-is'],
-            'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-            'vendor-editor': ['dompurify', 'isomorphic-dompurify']
-          }
-        }
+        output: {}
       },
       chunkSizeWarningLimit: 1000
     },

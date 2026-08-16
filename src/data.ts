@@ -46,12 +46,9 @@ export const initialGlobalConfig: GlobalConfig = {
   heroHeadline: "Stop Wasting Money on Unverified Sites. Claim Your 100% Guaranteed Welcome Bonuses",
   heroSubheading: "Verified, licensed platforms with instant withdrawals, high RTP slots, and up to $1,500 + 500% first deposit bonuses.",
   topBannerTemplate: "🔥 Top Verified Gaming Sites available in {{country}} today!",
-  enableLuckyWheel: true,
+
   enableSubPartnerProgram: true,
   subPartnerHeadline: "Become an Official Gaming Sub-Partner & Earn 45%-50% Lifetime RevShare",
-  featuredPrizePlatformId: "1win",
-  featuredPromoCode: "VIPBONUS500",
-  wheelBonusText: "500% WELCOME BONUS + 200 FREE SPINS",
   // Standalone Custom Coupons
   customCoupons: [
     {

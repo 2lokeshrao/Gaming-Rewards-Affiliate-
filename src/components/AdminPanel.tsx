@@ -1490,19 +1490,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                   <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                     <div>
-                      <span className="font-bold text-white text-xs block">Enable Lucky Wheel Pop-up</span>
-                      <span className="text-[11px] text-slate-400">Shows gamified spin wheel after 5s or on exit intent.</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={localConfig.enableLuckyWheel}
-                      onChange={e => setLocalConfig({ ...localConfig, enableLuckyWheel: e.target.checked })}
-                      className="w-5 h-5 rounded accent-purple-600"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <div>
                       <span className="font-bold text-white text-xs block">Enable Ad-Bot Cloaking Filter</span>
                       <span className="text-[11px] text-slate-400">Detects Googlebot/FB crawler user-agents on /go/* routes and displays a safe blog review instead of direct redirect.</span>
                       <span className="text-[11px] text-amber-500 font-bold block mt-1 uppercase">⚠️ Warning: Enabling this may violate Google Ads and Facebook Ads cloaking policies and lead to permanent account suspension.</span>
@@ -1646,7 +1633,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl">
                   <span className="text-xs text-slate-400 font-bold block">Lucky Wheel Spins</span>
-                  <span className="text-2xl font-black text-purple-400 mt-1 block">{stats?.totalWheelSpins || 0}</span>
                 </div>
               </div>
 

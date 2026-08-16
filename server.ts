@@ -302,7 +302,6 @@ let stateStats: AnalyticsStats = {
   totalVisits: 1820,
   totalClicks: 840,
   totalPromoCopies: 490,
-  totalWheelSpins: 310,
   totalSubPartnerApps: 2,
   platformStats: {},
   dailyTrends: [
@@ -546,12 +545,8 @@ app.get('/api/data', (req, res) => {
     heroHeadline: stateConfig.heroHeadline,
     heroSubheading: stateConfig.heroSubheading,
     topBannerTemplate: stateConfig.topBannerTemplate,
-    enableLuckyWheel: stateConfig.enableLuckyWheel,
     enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
     subPartnerHeadline: stateConfig.subPartnerHeadline,
-    featuredPrizePlatformId: stateConfig.featuredPrizePlatformId,
-    featuredPromoCode: stateConfig.featuredPromoCode,
-    wheelBonusText: stateConfig.wheelBonusText,
     customCoupons: stateConfig.customCoupons,
     approvedFeedbacks: stateConfig.approvedFeedbacks,
     pushNotifications: stateConfig.pushNotifications,
@@ -679,8 +674,6 @@ app.post('/api/track', (req, res) => {
   } else if (eventType === 'copy') {
     stateStats.totalPromoCopies += 1;
     if (platform) platform.copiesCount = (platform.copiesCount || 0) + 1;
-  } else if (eventType === 'wheel_spin') {
-    stateStats.totalWheelSpins += 1;
   }
 
   const logEntry: TrackLog = {

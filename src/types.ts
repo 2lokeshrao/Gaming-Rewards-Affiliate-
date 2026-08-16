@@ -129,13 +129,9 @@ export interface GlobalConfig {
   heroHeadline: string;
   heroSubheading: string;
   topBannerTemplate: string;
-  enableLuckyWheel: boolean;
   exitIntentConfig?: ExitIntentPopupConfig;
   enableSubPartnerProgram: boolean;
   subPartnerHeadline: string;
-  featuredPrizePlatformId: string;
-  featuredPromoCode: string;
-  wheelBonusText: string;
   // Custom Standalone Coupons
   customCoupons?: CustomCoupon[];
   // Tracking Pixels & Feedback
@@ -197,7 +193,6 @@ export interface AnalyticsStats {
   totalVisits: number;
   totalClicks: number;
   totalPromoCopies: number;
-  totalWheelSpins: number;
   totalSubPartnerApps: number;
   platformStats: Record<string, { clicks: number; copies: number }>;
   dailyTrends?: { date: string; clicks: number; conversions: number }[];
@@ -207,7 +202,7 @@ export interface TrackLog {
   id: string;
   platformId?: string;
   platformName?: string;
-  eventType: 'visit' | 'click' | 'copy' | 'wheel_spin';
+  eventType: 'visit' | 'click' | 'copy';
   timestamp: string;
   country: string;
   ip: string;

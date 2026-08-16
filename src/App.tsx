@@ -41,7 +41,6 @@ const ProgrammaticSeoArticles = lazy(() => import('./components/ProgrammaticSeoA
 const FaqSection = lazy(() => import('./components/FaqSection').then(m => ({ default: m.FaqSection })));
 const PaymentGuideSection = lazy(() => import('./components/PaymentGuideSection').then(m => ({ default: m.PaymentGuideSection })));
 const CustomCouponsSection = lazy(() => import('./components/CustomCouponsSection').then(m => ({ default: m.CustomCouponsSection })));
-const LuckyWheelModal = lazy(() => import('./components/LuckyWheelModal').then(m => ({ default: m.LuckyWheelModal })));
 const SubPartnerModal = lazy(() => import('./components/SubPartnerModal').then(m => ({ default: m.SubPartnerModal })));
 const ClaimWithQrModal = lazy(() => import('./components/ClaimWithQrModal').then(m => ({ default: m.ClaimWithQrModal })));
 const PlatformFeedbackModal = lazy(() => import('./components/PlatformFeedbackModal').then(m => ({ default: m.PlatformFeedbackModal })));
@@ -104,7 +103,6 @@ export default function App() {
 
 
   // Modals
-  const [showWheelModal, setShowWheelModal] = useState(false);
   const [showSubPartnerModal, setShowSubPartnerModal] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [selectedQrPlatform, setSelectedQrPlatform] = useState<GamingPlatform | null>(null);
@@ -256,22 +254,9 @@ export default function App() {
     }
   }, [platforms]);
 
-  // Trigger Lucky Wheel after 5 seconds automatically if enabled
-  useEffect(() => {
-    if (!config || !config.enableLuckyWheel) return;
-
-    const hasSeenWheel = sessionStorage.getItem('has_seen_wheel');
-    if (!hasSeenWheel) {
-      const timer = setTimeout(() => {
-        setShowWheelModal(true);
-        sessionStorage.setItem('has_seen_wheel', 'true');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [config]);
 
   // Handle Event Tracking
-  const trackEvent = async (eventType: 'click' | 'copy' | 'wheel_spin', platformId?: string) => {
+  const trackEvent = async (eventType: 'click' | 'copy', platformId?: string) => {
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', eventType, { platform_id: platformId });
     }
@@ -393,31 +378,6 @@ export default function App() {
     window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Promo code copied!' }));
   };
 
-  // Wheel prize redirect
-  const handleWheelClaimPrize = (p: GamingPlatform, code: string) => {
-    trackEvent('wheel_spin', p.id);
-    const endTime = Date.now() + 10 * 60 * 1000;
-    const timerData = {
-      platformName: p.name,
-      promoCode: code || p.promoCode || 'MAXBOOST500',
-      slug: p.slug,
-      endTime
-    };
-    setActiveUrgencyTimer(timerData);
-    try {
-      sessionStorage.setItem('active_urgency_timer', JSON.stringify(timerData));
-    } catch {}
-
-    const clickId = sessionStorage.getItem('tracker_click_id') || '';
-    const sub1 = sessionStorage.getItem('tracker_sub1') || geo.countryCode || '';
-    const sub2 = sessionStorage.getItem('tracker_sub2') || 'bonuspromocode_web_wheel';
-    
-    let target = `/go/${p.slug}?sub1=${sub1}&sub2=${sub2}`;
-    if (clickId) target += `&click_id=${clickId}`;
-
-    window.open(target, '_blank');
-    setShowWheelModal(false);
-  };
 
   // Admin Login
   const handleAdminLogin = async (passcode: string): Promise<boolean> => {
@@ -688,15 +648,6 @@ export default function App() {
 
         {/* Floating Action Launchers */}
         <div className="max-w-7xl mx-auto px-4 my-6 flex flex-wrap items-center justify-center gap-3">
-          {config.enableLuckyWheel && (
-            <button
-              onClick={() => setShowWheelModal(true)}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 font-black text-xs sm:text-sm text-white shadow-xl shadow-purple-600/30 flex items-center gap-2 cursor-pointer transform hover:scale-105 transition-transform"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
-              <span>{t('hero.spinWheel')}</span>
-            </button>
-          )}
 
           {config.enableSubPartnerProgram !== false && (
             <button
@@ -767,14 +718,6 @@ export default function App() {
 
       {/* Pop-up Modals & Floating Components */}
       <Suspense fallback={null}>
-        {showWheelModal && (
-          <LuckyWheelModal
-            platforms={platforms}
-            config={config}
-            onClaimPrize={handleWheelClaimPrize}
-            onClose={() => setShowWheelModal(false)}
-          />
-        )}
 
         {showSubPartnerModal && (
           <SubPartnerModal

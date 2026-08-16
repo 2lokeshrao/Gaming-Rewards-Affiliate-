@@ -31,6 +31,22 @@ const logger = winston.createLogger({
 
 // Sentry is initialized in instrument.ts
 
+
+async function generateWithRetry(ai: GoogleGenAI, params: any, retries: number = 3): Promise<any> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await ai.models.generateContent(params);
+    } catch (e: any) {
+      if ((e.status === 503 || e.status === 429) && i < retries - 1) {
+        logger.warn(`AI API ${e.status} error, retrying in ${2 * (i + 1)}s...`);
+        await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 const app = express();
 
 // Trust reverse proxy (Cloud Run, load balancer) for rate limiting and X-Forwarded-For
@@ -254,7 +270,7 @@ Format your response exactly as JSON:
   "suggestedFix": "Code patch or action"
 }`;
 
-        const response = await ai.models.generateContent({
+        const response = await generateWithRetry(ai, {
           model: 'gemini-3.7-flash',
           contents: systemPrompt,
           config: {
@@ -961,7 +977,7 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
 
     const prompt = `You are an expert iGaming SEO copywriter. Generate SEO metadata (title, description, keywords) and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Focus on bonuses, withdrawals, and reliability. IMPORTANT: Keep the title strictly under 60 characters and the description strictly under 160 characters to comply with Google SEO guidelines.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
 
-    const response = await ai.models.generateContent({
+    const response = await generateWithRetry(ai, {
       model: 'gemini-3.7-flash',
       contents: prompt,
       config: {
@@ -1029,7 +1045,7 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     - Return the response as JSON matching the schema precisely.
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await generateWithRetry(ai, {
       model: 'gemini-3.7-flash',
       contents: prompt,
       config: {
@@ -1213,7 +1229,7 @@ const autoblogInterval = setInterval(async () => {
       "tags": ["tag1", "tag2", "tag3"]
     }`;
 
-    const response = await ai.models.generateContent({
+    const response = await generateWithRetry(ai, {
       model: 'gemini-3.7-flash',
       contents: prompt,
       config: {

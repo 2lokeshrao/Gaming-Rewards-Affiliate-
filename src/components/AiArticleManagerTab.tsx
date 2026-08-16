@@ -7,9 +7,10 @@ interface AiArticleManagerTabProps {
   config: GlobalConfig;
   platforms: GamingPlatform[];
   onSaveConfig: (updatedConfig: GlobalConfig) => void;
+  token: string;
 }
 
-export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config, platforms, onSaveConfig }) => {
+export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config, platforms, onSaveConfig, token }) => {
   const [articles, setArticles] = useState<AIArticle[]>(config.articles || []);
   const [topic, setTopic] = useState('');
   const [selectedPlatformId, setSelectedPlatformId] = useState('');
@@ -29,7 +30,10 @@ export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config
       const platform = platforms.find(p => p.id === selectedPlatformId);
       const res = await fetch('/api/generate-article', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           topic, 
           category, 
@@ -41,6 +45,7 @@ export const AiArticleManagerTab: React.FC<AiArticleManagerTabProps> = ({ config
       const data = await res.json();
       
       if (!res.ok) throw new Error(data.error || 'Failed to generate');
+
       
       const newArticle: AIArticle = {
         id: 'art_' + Date.now(),

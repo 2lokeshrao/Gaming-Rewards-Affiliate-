@@ -1932,6 +1932,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               config={config}
               platforms={platforms}
               onSaveConfig={onSaveConfig}
+              token={token}
             />
           )}
 

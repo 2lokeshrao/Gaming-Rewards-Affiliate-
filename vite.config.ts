@@ -11,22 +11,34 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-
     build: {
+      emptyOutDir: false,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          passes: 2,
+        },
+        format: {
+          comments: false,
+        }
+      },
+      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
       rollupOptions: {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom'],
-            'vendor-ui': ['lucide-react', 'recharts']
+            'vendor-ui': ['lucide-react', 'canvas-confetti'],
+            'vendor-markdown': ['react-markdown', 'rehype-sanitize', '@uiw/react-md-editor'],
+            'vendor-charts': ['recharts']
           }
         }
-      }
+      },
+      chunkSizeWarningLimit: 1500
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };

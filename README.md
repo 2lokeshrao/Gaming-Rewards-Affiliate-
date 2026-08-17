@@ -42,21 +42,26 @@ An enterprise-grade, high-converting iGaming Affiliate Platform designed for pro
 
 ---
 
-## 🔑 Admin Security & Password Change Guide
+## 🔑 Admin Security & Configuration
 
 ### How to Access the Admin Center
 1. Click the lock icon in the header or footer of the application.
-2. Enter the passcode in the prompt .
+2. Enter the admin passcode in the prompt.
 
-### How to Change the Admin Password
-To update the admin password:
-1. Open file `src/components/AdminLoginModal.tsx`.
-2. Locate line 22:
-   ```typescript
-   if (passcode === '@dmin123') {
-   ```
-3. Replace `'@dmin123'` with your desired new password.
-4. Save the file. The new passcode will take effect immediately.
+### Configuration via Environment Variables
+For security, the application uses environment variables instead of hardcoded secrets. You must set these in your deployment environment (e.g., in AI Studio Secrets or Vercel Environment Variables):
+- `ADMIN_PASSCODE`: The password required to log into the Admin panel.
+- `JWT_SECRET`: A secure random string used to sign authentication tokens.
+
+**Note on Firebase:** Ensure that your `firebase-applet-config.json` containing real production keys is not committed to public version control. It is safe to use within your secure environment.
+
+---
+
+## 🛡️ Recent Security Enhancements
+- **Rate Limiting:** `express-rate-limit` prevents brute force and spam requests.
+- **HTTP Security Headers:** X-XSS-Protection, Referrer-Policy, X-Frame-Options, and X-Content-Type-Options properly enforced.
+- **JWT Lifespan:** Admin session tokens restricted to a secure 8-hour expiry.
+- **S2S Webhook Security:** Sub-partner postback routes now require valid secret keys to authorize metric logging and tracking.
 
 ---
 

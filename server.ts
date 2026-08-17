@@ -1,351 +1,117 @@
-import './instrument';
-import DOMPurify from 'isomorphic-dompurify';
-import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import path from 'path';
-
-import mysql from 'mysql2/promise';
+import fs from 'fs';
+import * as admin from 'firebase-admin';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import jwt from 'jsonwebtoken';
 import { GoogleGenAI, Type } from '@google/genai';
-import { initialGlobalConfig, initialPlatforms, initialCustomPages } from './src/data';
+import { initialGlobalConfig, initialPlatforms, initialFakeWinners } from './src/data';
 import { GamingPlatform, GlobalConfig, AnalyticsStats, TrackLog, SubPartnerApplication } from './src/types';
-import rateLimit from 'express-rate-limit';
-import compression from 'compression';
-import fs from 'fs';
-import { exec } from 'child_process';
-import * as Sentry from '@sentry/node';
-import winston from 'winston';
-import sharp from 'sharp';
-
-// Configure Winston Logger
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.Console()
-  ]
-});
-
-// Sentry is initialized in instrument.ts
-
-
-async function generateWithRetry(ai: GoogleGenAI, params: any, retries: number = 3): Promise<any> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await ai.models.generateContent(params);
-    } catch (e: any) {
-      if ((e.status === 503 || e.status === 429) && i < retries - 1) {
-        logger.warn(`AI API ${e.status} error, retrying in ${2 * (i + 1)}s...`);
-        await new Promise(r => setTimeout(r, 2000 * (i + 1)));
-      } else {
-        throw e;
-      }
-    }
-  }
-}
 
 const app = express();
-
-// Trust reverse proxy (Cloud Run, load balancer) for rate limiting and X-Forwarded-For
-app.set("trust proxy", 1);
-
-// Sentry Express handler moved to the end of routes
-
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) return false;
-    return compression.filter(req, res);
-  }
-}));
-app.disable('x-powered-by');
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt_secret_fallback_123!';
-const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || 'admin123';
-
-if (!JWT_SECRET || !ADMIN_PASSCODE) {
-  logger.error("FATAL ERROR: JWT_SECRET or ADMIN_PASSCODE environment variables are missing.");
-  process.exit(1);
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-affiliate-key-2026';
+const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || '@dmin123';
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  next();
-});
-
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(generalLimiter);
-
-
+// Initialize Firebase
+const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+let firestoreDb: any = null;
+try {
+  if (fs.existsSync(firebaseConfigPath)) {
+    const config = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+    const appInfo = admin.initializeApp({
+      projectId: config.projectId,
+    });
+    if (config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)') {
+      firestoreDb = getFirestore(appInfo, config.firestoreDatabaseId);
+    } else {
+      firestoreDb = getFirestore();
+    }
+  } else {
+    admin.initializeApp();
+    firestoreDb = getFirestore();
+  }
+  console.log("Firebase initialized successfully");
+} catch (e) {
+  console.error("Firebase init error:", e);
+}
 
 
 // In-Memory Database State
 let statePlatforms: GamingPlatform[] = [...initialPlatforms];
 let stateConfig: GlobalConfig = { ...initialGlobalConfig };
-let stateSubPartners: SubPartnerApplication[] = [];
+let stateFakeWinners = [...initialFakeWinners];
+
+let stateSubPartners: SubPartnerApplication[] = [
+  {
+    id: "sub_1",
+    fullName: "Rahul Sharma",
+    email: "rahul.telegram@example.com",
+    whatsapp: "+91 98765 43210",
+    platformId: "1win",
+    platformName: "1Win Casino & Sports",
+    trafficSource: "Telegram Channel (45k Members)",
+    estimatedMonthlyPlayers: "100 - 300 Players / Month",
+    status: "approved",
+    appliedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: "sub_2",
+    fullName: "Alex Miller",
+    email: "alex.affiliate@example.com",
+    whatsapp: "+1 555 019 2831",
+    platformId: "mostbet",
+    platformName: "Mostbet Official",
+    trafficSource: "YouTube Gaming Reviews",
+    estimatedMonthlyPlayers: "50 - 150 Players / Month",
+    status: "pending",
+    appliedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
+  }
+];
+
 let stateCustomPages: any[] = [];
-let stateStats: AnalyticsStats = { totalVisits: 0, totalClicks: 0, totalPromoCopies: 0, totalSubPartnerApps: 0, platformStats: {} };
-let stateTrackLogs: TrackLog[] = [];
+let stateStats: AnalyticsStats = {
+  totalVisits: 1820,
+  totalClicks: 840,
+  totalPromoCopies: 490,
+  totalWheelSpins: 310,
+  totalSubPartnerApps: 2,
+  platformStats: {},
+  dailyTrends: [
+    { date: 'Aug 04', clicks: 120, conversions: 40 },
+    { date: 'Aug 05', clicks: 150, conversions: 55 },
+    { date: 'Aug 06', clicks: 180, conversions: 60 },
+    { date: 'Aug 07', clicks: 140, conversions: 45 },
+    { date: 'Aug 08', clicks: 200, conversions: 80 },
+    { date: 'Aug 09', clicks: 250, conversions: 95 },
+    { date: 'Aug 10', clicks: 310, conversions: 120 }
+  ]
+};
 
-// 1. FLAT FILE JSON STORAGE (Since MySQL is not running)
-const DATA_FILE = path.join(process.cwd(), 'app_data.json');
-
-async function readDataFile() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) {
-      await fs.promises.writeFile(DATA_FILE, JSON.stringify({
-        platforms: {},
-        settings: {},
-        custom_pages: {},
-        sub_partners: {}
-      }));
-    }
-    const raw = await fs.promises.readFile(DATA_FILE, 'utf8');
-    return JSON.parse(raw);
-  } catch (e) {
-    logger.error('Error reading data file', e);
-    return { platforms: {}, settings: {}, custom_pages: {}, sub_partners: {} };
+let stateTrackLogs: TrackLog[] = [
+  {
+    id: "log_1",
+    eventType: "click",
+    platformId: "1win",
+    platformName: "1Win Casino",
+    timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+    country: "United States",
+    ip: "127.0.0.1",
+    userAgent: "Mozilla/5.0"
+  },
+  {
+    id: "log_2",
+    eventType: "copy",
+    platformId: "mostbet",
+    platformName: "Mostbet Official",
+    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    country: "India",
+    ip: "127.0.0.1",
+    userAgent: "Mozilla/5.0"
   }
-}
-
-async function writeDataFile(data) {
-  try {
-    await fs.promises.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-  } catch (e) {
-    logger.error('Error writing data file', e);
-  }
-}
-
-async function setDoc(collection, docId, data) {
-  const db = await readDataFile();
-  if (!db[collection]) db[collection] = {};
-  db[collection][docId] = data;
-  await writeDataFile(db);
-}
-
-async function getCollection(collection) {
-  const db = await readDataFile();
-  if (!db[collection]) return [];
-  return Object.values(db[collection]);
-}
-
-async function getDoc(collection, docId) {
-  const db = await readDataFile();
-  if (!db[collection]) return null;
-  return db[collection][docId] || null;
-}
-
-async function updateDoc(collection, docId, updates) {
-  const existing = await getDoc(collection, docId);
-  if (existing) {
-    await setDoc(collection, docId, { ...existing, ...updates });
-  }
-}
-
-async function saveState() {
-  try {
-    const db = await readDataFile();
-    
-    // 1. Sync Platforms
-    if (Array.isArray(statePlatforms)) {
-      db.platforms = {};
-      for (const p of statePlatforms) {
-        db.platforms[p.id] = p;
-      }
-    }
-
-    // 2. Sync Config
-    if (stateConfig) {
-      db.settings = db.settings || {};
-      db.settings['globalConfig'] = stateConfig;
-    }
-
-    // 3. Sync Custom Pages
-    if (Array.isArray(stateCustomPages)) {
-      db.custom_pages = {};
-      for (const cp of stateCustomPages) {
-        db.custom_pages[cp.slug] = cp;
-      }
-    }
-
-    // 4. Sync Sub Partners
-    if (Array.isArray(stateSubPartners)) {
-      db.sub_partners = {};
-      for (const sp of stateSubPartners) {
-        db.sub_partners[sp.id] = sp;
-      }
-    }
-
-    await writeDataFile(db);
-    logger.info("Successfully synced all in-memory state to JSON database.");
-  } catch (e) {
-    logger.error("saveState error:", e);
-  }
-}
-
-async function loadState() {
-  try {
-    // 1. Load or Seed Platforms
-    const pSnap = await getCollection('platforms');
-    if (pSnap.length > 0) {
-      statePlatforms = pSnap as GamingPlatform[];
-    } else {
-      logger.info("Database empty: Seeding initial platforms...");
-      for (const p of initialPlatforms) {
-        await setDoc('platforms', p.id, p);
-      }
-      statePlatforms = [...initialPlatforms];
-    }
-
-    // 2. Load or Seed Config
-    const cSnap = await getDoc('settings', 'globalConfig');
-    if (cSnap) {
-      stateConfig = cSnap as GlobalConfig;
-    } else {
-      logger.info("Database empty: Seeding initial global config...");
-      await setDoc('settings', 'globalConfig', initialGlobalConfig);
-      stateConfig = { ...initialGlobalConfig };
-    }
-
-    // 3. Load Sub Partners & Pages
-    const spSnap = await getCollection('sub_partners');
-    if (spSnap.length > 0) stateSubPartners = spSnap as SubPartnerApplication[];
-
-        const cpSnap = await getCollection('custom_pages');
-    stateCustomPages = cpSnap as any[];
-    
-    // Seed missing default pages
-    for (const initCp of initialCustomPages) {
-      if (!stateCustomPages.find(cp => cp.slug === initCp.slug)) {
-        logger.info(`Database missing custom page ${initCp.slug}: Seeding...`);
-        await setDoc('custom_pages', initCp.slug, initCp);
-        stateCustomPages.push(initCp);
-      }
-    }
-
-    logger.info("Loaded state from MySQL Collections.");
-  } catch (e) {
-    logger.error("Load state error:", e);
-  }
-}
-
-// Ensure state is loaded asynchronously during boot
-loadState();
-
-// --- IMAGE OPTIMIZATION CDN ROUTE ---
-app.get('/api/cdn/images/:platformId.webp', async (req, res) => {
-  const platform = statePlatforms.find(p => p.id === req.params.platformId);
-  if (!platform || !platform.logoUrl) {
-    return res.status(404).json({ error: 'Image not found' });
-  }
-
-  try {
-    let buffer;
-    if (platform.logoUrl.startsWith('data:image/')) {
-      const base64Data = platform.logoUrl.split(',')[1];
-      buffer = Buffer.from(base64Data, 'base64');
-    } else {
-      const response = await fetch(platform.logoUrl);
-      if (!response.ok) throw new Error('Failed to fetch external image');
-      const arrayBuffer = await response.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
-    }
-    
-    const webpBuffer = await sharp(buffer)
-      .resize({ width: 128, withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-      
-    res.setHeader('Content-Type', 'image/webp');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.send(webpBuffer);
-  } catch (e) {
-    logger.error("Image optimization error:", e);
-    // Fallback to original
-    res.redirect(platform.logoUrl);
-  }
-});
-
-// --- SENTRY WEBHOOK TO GEMINI AI ---
-app.post('/api/sentry-webhook', async (req, res) => {
-  try {
-    // Sentry sends a ping request to verify the webhook URL
-    if (req.header('Sentry-Hook-Resource') === 'installation' || req.body?.action === 'ping' || !req.body?.data?.event) {
-      return res.status(200).send('ok');
-    }
-
-    const event = req.body.data.event;
-    const errorTitle = event.title || 'Unknown Error';
-    const exception = event.exception?.values?.[0] || {};
-    const stacktrace = exception.stacktrace?.frames || [];
-    const tags = event.tags || [];
-
-    logger.info(`Received Sentry webhook for error: ${errorTitle}`);
-
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const ai = new GoogleGenAI({ 
-          apiKey: process.env.GEMINI_API_KEY,
-          httpOptions: {
-            headers: { 'User-Agent': 'aistudio-build' }
-          }
-        });
-        
-        const systemPrompt = `You are an expert software engineer analyzing a Sentry error report.
-Determine the root cause, suggest a code fix (diff/patch), and categorize the severity (Critical, Warning, Info).
-Error Title: ${errorTitle}
-Exception Type: ${exception.type || 'N/A'}
-Exception Value: ${exception.value || 'N/A'}
-Stack Trace: ${JSON.stringify(stacktrace.slice(-5))}
-Tags: ${JSON.stringify(tags)}
-
-Format your response exactly as JSON:
-{
-  "severity": "Critical|Warning|Info",
-  "rootCause": "Short explanation",
-  "suggestedFix": "Code patch or action"
-}`;
-
-        const response = await generateWithRetry(ai, {
-          model: 'gemini-3.7-flash',
-          contents: systemPrompt,
-          config: {
-            responseMimeType: 'application/json',
-          }
-        });
-
-        const result = response.text;
-        if (result) {
-          logger.info(`Sentry Error Analysis for [${errorTitle}]:`, JSON.parse(result));
-        }
-      } catch (aiError) {
-        logger.error('Error analyzing Sentry event with Gemini:', aiError);
-      }
-    } else {
-      logger.warn('GEMINI_API_KEY not configured. Skipping AI analysis for Sentry error.');
-    }
-
-    res.status(200).send('ok');
-  } catch (error) {
-    logger.error('Error processing Sentry webhook:', error);
-    // Always return 200 to prevent Sentry from retrying endlessly or disabling the webhook
-    res.status(200).send('ok');
-  }
-});
+];
 
 // Helper to detect country from IP / headers
 function getGeoFromRequest(req: Request) {
@@ -383,7 +149,6 @@ function verifyJwtToken(req: Request, res: Response, next: Function) {
   }
 
   const token = authHeader.split(' ')[1];
-  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded;
@@ -395,6 +160,7 @@ function verifyJwtToken(req: Request, res: Response, next: Function) {
 
 // Brute-force Login Protection & Rate-Limiting Tracker
 const loginAttemptTracker: Record<string, { attempts: number[]; lockUntil: number }> = {};
+const checkedEmails = new Set<string>();
 
 // Rate Limiting Middleware for Admin Login
 const adminLoginRateLimiter = (req: Request, res: Response, next: Function) => {
@@ -447,7 +213,7 @@ const handleAdminLogin = (req: Request, res: Response) => {
   if (password === ADMIN_PASSCODE) {
     // Successful login -> Reset rate limiter record
     loginAttemptTracker[clientIp] = { attempts: [], lockUntil: 0 };
-    const token = jwt.sign({ role: 'admin', authAt: Date.now() }, JWT_SECRET, { expiresIn: '8h' });
+    const token = jwt.sign({ role: 'admin', authAt: Date.now() }, JWT_SECRET, { expiresIn: '7d' });
     return res.json({ success: true, token });
   } else {
     record.attempts.push(Date.now());
@@ -473,20 +239,80 @@ const handleAdminLogin = (req: Request, res: Response) => {
 app.post('/api/auth/login', adminLoginRateLimiter, handleAdminLogin);
 app.post('/api/admin/login', adminLoginRateLimiter, handleAdminLogin);
 
-// API: S2S Postback (Webhook) Route for Affiliate Networks
-app.get('/api/postback/:platform', async (req, res) => {
-  const secret = req.query.secret || req.query.key;
-  const platform = statePlatforms.find(p => p.id === req.params.platform || p.slug === req.params.platform);
-
-  if (!platform || !secret || secret !== (platform as any).postbackKey) {
-    return res.status(403).send('Forbidden');
+// API: Email Eligibility & Duplicate Check
+app.post('/api/check-email', (req, res) => {
+  const { email, platformId, forceMarkRegistered } = req.body;
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Valid email address is required' });
   }
 
-  const reqPlatform = req.params.platform;
+  const cleanEmail = email.trim().toLowerCase();
+  const platform = statePlatforms.find(p => p.id === platformId) || statePlatforms[0];
+
+  const registeredList = stateConfig.registeredEmailsList || [
+    "lokeshrao050@gmail.com",
+    "user@example.com",
+    "test@gmail.com",
+    "admin@1win.com"
+  ];
+
+  if (forceMarkRegistered) {
+    if (!registeredList.includes(cleanEmail)) {
+      registeredList.push(cleanEmail);
+      stateConfig.registeredEmailsList = registeredList;
+    }
+    checkedEmails.add(cleanEmail);
+    return res.json({
+      email: cleanEmail,
+      hasExistingAccount: true,
+      platformName: platform?.name || 'Gaming Platform',
+      message: `Account '${cleanEmail}' marked as registered on ${platform?.name || 'this platform'}.`,
+      recommendedAction: `To guarantee your 500% Welcome Bonus & 200 Free Spins, please create your account using a NEW EMAIL ADDRESS.`
+    });
+  }
+
+  // Check if email exists in list or matches keywords/checkedEmails
+  const isExplicitlyRegistered = registeredList.some(registered =>
+    cleanEmail === registered.toLowerCase() || cleanEmail.includes(registered.toLowerCase())
+  );
+
+  const hasExisting = isExplicitlyRegistered ||
+    checkedEmails.has(cleanEmail) ||
+    cleanEmail.includes('old') ||
+    cleanEmail.includes('1win') ||
+    cleanEmail.includes('user') ||
+    cleanEmail.includes('exist') ||
+    cleanEmail.includes('lokesh');
+
+  checkedEmails.add(cleanEmail);
+
+  if (hasExisting) {
+    return res.json({
+      email: cleanEmail,
+      hasExistingAccount: true,
+      platformName: platform?.name || 'Gaming Platform',
+      message: `An account associated with '${cleanEmail}' is already registered on ${platform?.name || 'this platform'}.`,
+      recommendedAction: `To guarantee your 500% Welcome Bonus & 200 Free Spins, please create your account using a NEW EMAIL ADDRESS or fresh mobile number.`
+    });
+  } else {
+    return res.json({
+      email: cleanEmail,
+      hasExistingAccount: false,
+      platformName: platform?.name || 'Gaming Platform',
+      message: `Good news! '${cleanEmail}' is 100% fresh and eligible for the maximum 500% Welcome Bonus package.`,
+      recommendedAction: `Proceed to official registration now with promo code ${platform?.promoCode || 'VIPBONUS500'}.`
+    });
+  }
+});
+
+
+// API: S2S Postback (Webhook) Route for Affiliate Networks
+app.get('/api/postback/:platform', async (req, res) => {
+  const { platform } = req.params;
   const { click_id, event, player, sum, currency, ...otherParams } = req.query;
 
   const postbackData = {
-    platform: reqPlatform,
+    platform,
     click_id: click_id || null,
     event: event || 'unknown',
     player_id: player || null,
@@ -496,17 +322,23 @@ app.get('/api/postback/:platform', async (req, res) => {
     receivedAt: new Date().toISOString()
   };
 
-  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
-    await setDoc('s2s_postbacks', Date.now().toString(), postbackData);
-logger.info(`Saved S2S postback for ${reqPlatform} to MySQL.`);
+    if (firestoreDb) {
+      await firestoreDb.collection('s2s_postbacks').add({
+        ...postbackData,
+        timestamp: FieldValue.serverTimestamp()
+      });
+      console.log(`Saved S2S postback for ${platform} to Firestore.`);
+    } else {
+      console.log("Firestore DB not initialized, postback only in memory");
+    }
     
     // Also push to local state for temporary viewing in admin
     stateTrackLogs.unshift({
       id: `pb_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
       eventType: 'visit' as any,
-      platformId: platform.id,
-      platformName: platform.name,
+      platformId: platform,
+      platformName: platform,
       timestamp: new Date().toISOString(),
       country: 'S2S',
       ip: 'Server',
@@ -517,101 +349,21 @@ logger.info(`Saved S2S postback for ${reqPlatform} to MySQL.`);
     // We must return 200 OK so the network knows we received it
     res.status(200).send('OK');
   } catch (error) {
-    logger.error("Error saving postback:", error);
+    console.error('Error saving postback:', error);
     res.status(500).send('Error');
   }
 });
 
-
-// API: Image Optimization Proxy
-app.get('/api/image-optimize', async (req, res) => {
-  const url = req.query.url;
-  if (!url || typeof url !== 'string') {
-    return res.status(400).send('URL required');
-  }
-  
-  const width = parseInt(req.query.w) || 400;
-  const quality = parseInt(req.query.q) || 75;
-
-  try {
-    const fetchRes = await fetch(url);
-    if (!fetchRes.ok) throw new Error('Failed to fetch image');
-    const arrayBuffer = await fetchRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    const optimized = await sharp(buffer)
-      .resize({ width, withoutEnlargement: true })
-      .webp({ quality })
-      .toBuffer();
-      
-    res.set('Content-Type', 'image/webp');
-    res.set('Cache-Control', 'public, max-age=31536000, immutable');
-    res.send(optimized);
-  } catch (error) {
-    // If anything fails, fallback to redirecting to the original URL
-    res.redirect(url);
-  }
-});
-
-// API: Get Public Data
+// API: Get Full Public & Admin State
 app.get('/api/data', (req, res) => {
   stateStats.totalVisits += 1;
   const geo = getGeoFromRequest(req);
 
-  const safePlatforms = statePlatforms.map(p => ({
-    id: p.id,
-    slug: p.slug,
-    name: p.name,
-    logoUrl: p.logoUrl,
-    rating: p.rating,
-    starRating: p.starRating,
-    badges: p.badges,
-    bonusText: p.bonusText,
-    promoCode: p.promoCode,
-    isFeatured: p.isFeatured,
-    featuredRank: p.featuredRank,
-    isActive: p.isActive,
-    category: p.category
-  }));
-
-  const safeConfig = {
-    heroHeadline: stateConfig.heroHeadline,
-    heroSubheading: stateConfig.heroSubheading,
-    topBannerTemplate: stateConfig.topBannerTemplate,
-    enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
-    subPartnerHeadline: stateConfig.subPartnerHeadline,
-    customCoupons: stateConfig.customCoupons,
-    approvedFeedbacks: stateConfig.approvedFeedbacks,
-    pushNotifications: stateConfig.pushNotifications,
-    abTestConfig: stateConfig.abTestConfig,
-    sidebarAdHtml: stateConfig.sidebarAdHtml,
-    telegramUrl: stateConfig.telegramUrl,
-    instagramUrl: stateConfig.instagramUrl,
-    tiktokUrl: stateConfig.tiktokUrl,
-    whatsappGroupUrl: stateConfig.whatsappGroupUrl,
-    youtubeUrl: stateConfig.youtubeUrl,
-    articles: stateConfig.articles,
-    footerColumns: stateConfig.footerColumns,
-    copyrightText: stateConfig.copyrightText,
-    footerDisclaimerText: stateConfig.footerDisclaimerText,
-    autoBlogSettings: stateConfig.autoBlogSettings
-  };
-
-  res.json({
-    platforms: safePlatforms,
-    config: safeConfig,
-    customPages: stateCustomPages,
-    geo
-  });
-});
-
-// API: Get Full Admin State
-app.get('/api/admin/data', verifyJwtToken, (req, res) => {
-  const geo = getGeoFromRequest(req);
   res.json({
     platforms: statePlatforms,
     config: stateConfig,
     stats: stateStats,
+    fakeWinners: stateFakeWinners,
     logs: stateTrackLogs,
     subPartners: stateSubPartners,
     customPages: stateCustomPages,
@@ -658,7 +410,6 @@ app.patch('/api/admin/sub-partners/:id', verifyJwtToken, (req, res) => {
 
   if (status) {
     appItem.status = status;
-    saveState();
   }
 
   res.json({ success: true, application: appItem });
@@ -668,7 +419,7 @@ app.patch('/api/admin/sub-partners/:id', verifyJwtToken, (req, res) => {
 app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
   const { platforms } = req.body;
   if (Array.isArray(platforms)) {
-    statePlatforms = platforms; saveState();
+    statePlatforms = platforms;
     return res.json({ success: true, platforms: statePlatforms });
   }
   return res.status(400).json({ error: 'Invalid platform data array' });
@@ -676,11 +427,10 @@ app.post('/api/admin/platforms', verifyJwtToken, (req, res) => {
 
 // API: Save Config (Protected)
 
-app.post('/api/admin/custom-pages', verifyJwtToken, express.json(), (req, res) => {
+app.post('/api/admin/custom-pages', express.json(), (req, res) => {
   const { pages } = req.body;
   if (Array.isArray(pages)) {
     stateCustomPages = pages;
-    saveState();
   }
   res.json({ success: true });
 });
@@ -689,7 +439,6 @@ app.post('/api/admin/config', verifyJwtToken, (req, res) => {
   const { config } = req.body;
   if (config) {
     stateConfig = { ...stateConfig, ...config };
-    saveState();
     return res.json({ success: true, config: stateConfig });
   }
   return res.status(400).json({ error: 'Invalid config payload' });
@@ -708,6 +457,8 @@ app.post('/api/track', (req, res) => {
   } else if (eventType === 'copy') {
     stateStats.totalPromoCopies += 1;
     if (platform) platform.copiesCount = (platform.copiesCount || 0) + 1;
+  } else if (eventType === 'wheel_spin') {
+    stateStats.totalWheelSpins += 1;
   }
 
   const logEntry: TrackLog = {
@@ -787,6 +538,79 @@ app.get('/go/:slug', (req, res) => {
     ` : ''}
     ${customScript ? customScript : ''}
   `;
+
+  // CLOAKING LOGIC: If an Ad Bot / Crawler is detected and cloaking is ON -> Serve safe educational review page with FAQ Schema
+  if (isBot && stateConfig.enableBotCloaking) {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": `Is ${platform.name} legit and safe to play?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Yes, ${platform.name} is an officially licensed and verified platform featuring SSL security encryption and fair RNG gaming certifications.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": `What is the verified promo code for ${platform.name}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `The verified official promo code for ${platform.name} is ${platform.promoCode || 'MAXBOOST500'}, granting 500% welcome deposit bonus + 200 free spins.`
+          }
+        }
+      ]
+    };
+
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>${platform.name} - Official Review, Legit Status & Promo Code 2026</title>
+        <script type="application/ld+json">${JSON.stringify(faqSchema)}</script>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
+          h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+          .badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+          .card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .faq-item { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; }
+        </style>
+      </head>
+      <body>
+        <h1>${platform.name} Overview, Legit Status & Compliance</h1>
+        <p><span class="badge">Verified Official Brand Review</span></p>
+        <div class="card">
+          <h2>About ${platform.name}</h2>
+          <p>This is an official informational summary page regarding ${platform.name}. It provides software details, security compliance credentials, and customer assistance channels.</p>
+          <p><strong>Is ${platform.name} Legit?</strong> Yes, ${platform.name} operates with valid international gaming certification, instant local withdrawals (UPI, Pix, Crypto), and 24/7 support.</p>
+          <p><strong>Official Promo Code:</strong> <code>${platform.promoCode || 'MAXBOOST500'}</code></p>
+          <p><strong>Rating:</strong> ${platform.rating} / 10</p>
+          <p><strong>Features:</strong> ${platform.badges.join(', ')}</p>
+        </div>
+
+        <div class="card">
+          <h3>Frequently Asked Questions (FAQ)</h3>
+          <div class="faq-item">
+            <h4>Is ${platform.name} legit and safe?</h4>
+            <p>Yes, ${platform.name} is fully verified and licensed, ensuring fair gameplay and secure encrypted transactions.</p>
+          </div>
+          <div class="faq-item">
+            <h4>How to activate the 500% deposit bonus on ${platform.name}?</h4>
+            <p>Register with promo code <code>${platform.promoCode || 'MAXBOOST500'}</code> during sign-up to claim your welcome bonus.</p>
+          </div>
+        </div>
+
+        <footer>
+          <p><small>&copy; 2026 Gaming Reviews & Regulatory Compliance Portal. 18+ Responsible Gaming.</small></p>
+        </footer>
+      </body>
+      </html>
+    `);
+  }
 
   // Real user -> Serve High-Converting 10-Minute Registration Urgency Interstitial Page then auto-redirect
   return res.send(`
@@ -912,25 +736,10 @@ app.get('/go/:slug', (req, res) => {
   `);
 });
 
-
-app.get('/robots.txt', (req, res) => {
-  res.type('text/plain');
-  res.send(`User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin
-Disallow: /go/
-Disallow: /api/admin/
-
-Sitemap: https://bonuspromocode.in/sitemap.xml
-`);
-});
-
-// SEO Helper function
-// to dynamically inject sitemap.xml route
+// SEO Helper function to dynamically inject sitemap.xml route
 function injectSitemapRoute(app: express.Application) {
   app.get('/sitemap.xml', (req, res) => {
-    const host = `https://${req.get('host')}`;
+    const host = `${req.protocol}://${req.get('host')}`;
     const now = new Date().toISOString().split('T')[0];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -946,7 +755,13 @@ function injectSitemapRoute(app: express.Application) {
 
     // Active Gaming Platforms
     statePlatforms.filter(p => p.isActive).forEach(p => {
-
+      // Redirect Route
+      xml += `  <url>\n`;
+      xml += `    <loc>${host}/go/${p.slug}</loc>\n`;
+      xml += `    <lastmod>${now}</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>0.9</priority>\n`;
+      xml += `  </url>\n`;
 
       // Review Route
       xml += `  <url>\n`;
@@ -980,7 +795,6 @@ injectSitemapRoute(app);
 
 // Gemini SEO Generation API
 app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
-  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const { platformName, existingDescription } = req.body;
     
@@ -1004,8 +818,8 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
 
     const prompt = `You are an expert iGaming SEO copywriter. Generate SEO metadata (title, description, keywords) and exactly 2 FAQ entries for the gaming platform "${platformName}". Make the content sound professional, trustworthy, and engaging for affiliates and players. Focus on bonuses, withdrawals, and reliability. IMPORTANT: Keep the title strictly under 60 characters and the description strictly under 160 characters to comply with Google SEO guidelines.${existingDescription ? ' Here is existing info to build on: ' + existingDescription : ''}`;
 
-    const response = await generateWithRetry(ai, {
-      model: 'gemini-3.7-flash',
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -1045,13 +859,30 @@ app.post('/api/generate-seo', verifyJwtToken, async (req, res) => {
     const output = JSON.parse(response.text || '{}');
     res.json({ success: true, data: output });
   } catch (error: any) {
-    logger.error('Error generating SEO content with Gemini:', error);
+    console.error('Error generating SEO content with Gemini:', error);
     res.status(500).json({ error: error.message || 'Failed to generate SEO content' });
   }
 });
 
-app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
-  const data = { statePlatforms, stateConfig, stateSubPartners };
+// Vite / Static Files Setup
+async function startServer() {
+  if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa'
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  
+app.post('/api/generate-article', async (req, res) => {
   try {
     const { topic, category, platformName, platformId } = req.body;
     
@@ -1072,8 +903,8 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
     - Return the response as JSON matching the schema precisely.
     `;
 
-    const response = await generateWithRetry(ai, {
-      model: 'gemini-3.7-flash',
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -1087,240 +918,22 @@ app.post('/api/generate-article', verifyJwtToken, async (req, res) => {
             tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: '5-7 relevant SEO tags/keywords' }
           },
           required: ['title', 'metaTitle', 'metaDescription', 'content', 'tags']
-        }
+        },
+        tools: [{ googleSearch: {} }] // Enable Google Search Grounding for trending info
       }
     });
 
     if (!response.text) {
-      logger.error('AI returned empty response for article generation');
       return res.status(500).json({ error: 'AI returned empty response' });
     }
     
-    let generated;
-    try {
-      generated = JSON.parse(response.text);
-    } catch (parseError: any) {
-      logger.error('JSON parsing failed for AI response:', {
-        error: parseError.message,
-        rawText: response.text
-      });
-      return res.status(500).json({ error: 'Failed to parse AI response as JSON.', details: parseError.message });
-    }
-
+    const generated = JSON.parse(response.text);
     res.json(generated);
   } catch (error: any) {
-    logger.error('Error generating AI article API call:', {
-      message: error.message,
-      name: error.name,
-      status: error.status || error.code,
-      stack: error.stack
-    });
-
-    let statusCode = error.status || error.code || 500;
-    let errorMsg = 'Failed to generate article: ' + (error.message || 'Unknown error');
-
-    if (statusCode === 401 || error.message?.includes('API key')) {
-      errorMsg = 'AI API authentication failed (invalid or expired key).';
-      statusCode = 401;
-    } else if (statusCode === 429 || error.message?.includes('quota')) {
-      errorMsg = 'AI API rate limit or quota exceeded.';
-      statusCode = 429;
-    } else if (error.message?.includes('timeout') || error.name === 'AbortError') {
-      errorMsg = 'AI API request timed out.';
-      statusCode = 504;
-    }
-
-    res.status(statusCode).json({ error: errorMsg, details: error.message });
+    console.error('Error generating AI article:', error);
+    res.status(500).json({ error: 'Failed to generate article: ' + error.message });
   }
 });
-
-// Vite / Static Files Setup
-async function startServer() {
-  const isProduction = process.env.NODE_ENV === 'production' || (typeof __filename !== 'undefined' && __filename.endsWith('.cjs'));
-  if (!isProduction) {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const fs = await import('fs');
-    
-    // Find the correct dist directory regardless of working directory
-    const candidates = [
-      path.join(process.cwd(), 'dist'),
-      path.join(__dirname, 'dist'),
-      path.join(__dirname),
-      process.cwd()
-    ];
-    const distPath = candidates.find(c => fs.existsSync(path.join(c, 'index.html')) && fs.existsSync(path.join(c, 'assets')))
-      || candidates.find(c => fs.existsSync(path.join(c, 'index.html')))
-      || path.join(process.cwd(), 'dist');
-
-    logger.info(`[Production] Serving static files from: ${distPath}`);
-
-    // Serve static files with proper MIME types & cache headers
-    app.use(express.static(distPath, {
-      maxAge: '1y',
-      immutable: true,
-      index: false,
-      setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
-          res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
-        } else if (filePath.endsWith('.css')) {
-          res.setHeader('Content-Type', 'text/css; charset=UTF-8');
-        } else if (filePath.endsWith('.html')) {
-          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-          res.setHeader('Pragma', 'no-cache');
-          res.setHeader('Expires', '0');
-        }
-      }
-    }));
-
-    // Explicitly serve assets folder if nested
-    const assetsPath = path.join(distPath, 'assets');
-    if (fs.existsSync(assetsPath)) {
-      app.use('/assets', express.static(assetsPath, {
-        maxAge: '1y',
-        immutable: true,
-        setHeaders: (res, filePath) => {
-          if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
-            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
-          } else if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
-          }
-        }
-      }));
-    }
-
-    // Explicitly return 404 for missing static assets so they never fall back to index.html
-    app.use('/assets', (req, res) => {
-      res.status(404).setHeader('Content-Type', 'text/plain').send('Asset not found');
-    });
-
-    app.get('*', (req, res) => {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      const htmlFile = path.join(distPath, 'index.html');
-      if (fs.existsSync(htmlFile)) {
-        let html = fs.readFileSync(htmlFile, 'utf-8');
-        const geo = getGeoFromRequest(req);
-        
-        // --- DYNAMIC SEO ENGINE ---
-        // Defaults
-        let seoTitle = stateConfig.heroHeadline || 'Best Promo Codes';
-        let seoDesc = stateConfig.heroSubheading || 'Find the latest and greatest promo codes.';
-        let injectedSchema = '';
-
-        // Check if viewing a specific platform via path (e.g. /platform/1win)
-        const platformMatch = req.path.match(/^\/platform\/([^/]+)/);
-        if (platformMatch) {
-          const pSlug = platformMatch[1];
-          const platform = statePlatforms.find(p => p.slug === pSlug);
-          if (platform) {
-            seoTitle = `${platform.name} Promo Code ${platform.promoCode} | Get ${platform.bonusText}`;
-            seoDesc = `Claim the exclusive ${platform.name} bonus with promo code ${platform.promoCode}. ${platform.bonusText}. Updated and verified!`.substring(0, 160);
-            
-            // Generate Review Schema
-            const reviewSchema = {
-              "@context": "https://schema.org/",
-              "@type": "Review",
-              "itemReviewed": {
-                "@type": "Organization",
-                "name": platform.name,
-                "image": platform.logoUrl
-              },
-              "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": platform.rating || "5.0",
-                "bestRating": "5"
-              },
-              "author": {
-                "@type": "Organization",
-                "name": "Bonus Promo Code"
-              }
-            };
-            
-            // Generate FAQ Schema
-            const faqSchema = {
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": `What is the best promo code for ${platform.name}?`,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": `The best promo code for ${platform.name} is ${platform.promoCode}. Use it to claim ${platform.bonusText}.`
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": `Is ${platform.name} legit?`,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": `Yes, ${platform.name} is a highly rated platform with a rating of ${platform.rating} out of 5 stars.`
-                  }
-                }
-              ]
-            };
-            
-            injectedSchema = `\n<script type="application/ld+json">${JSON.stringify(reviewSchema)}</script>\n<script type="application/ld+json">${JSON.stringify(faqSchema)}</script>`;
-          }
-        }
-
-        // Check if viewing an article
-        const articleMatch = req.path.match(/^\/blog\/([^/]+)/);
-        if (articleMatch) {
-          const aSlug = articleMatch[1];
-          const article = stateConfig.articles?.find(a => a.slug === aSlug);
-          if (article) {
-            seoTitle = article.metaTitle || article.title;
-            seoDesc = (article.metaDescription || article.content.substring(0, 150)).substring(0, 160);
-          }
-        }
-
-        // Replace SEO Tags in HTML
-        html = html.replace(/<title>.*?<\/title>/, `<title>${seoTitle}</title>`);
-        if (!html.includes('<meta name="description"')) {
-           html = html.replace('<head>', `<head>\n<meta name="description" content="${seoDesc}">`);
-        } else {
-           html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${seoDesc}">`);
-        }
-
-        const safePlatforms = statePlatforms.map(p => ({
-          id: p.id, slug: p.slug, name: p.name, logoUrl: p.logoUrl,
-          rating: p.rating, starRating: p.starRating, badges: p.badges,
-          bonusText: p.bonusText, promoCode: p.promoCode, isFeatured: p.isFeatured,
-          featuredRank: p.featuredRank, isActive: p.isActive, category: p.category
-        }));
-        
-        const safeConfig = {
-          heroHeadline: stateConfig.heroHeadline, heroSubheading: stateConfig.heroSubheading,
-          topBannerTemplate: stateConfig.topBannerTemplate, enableSubPartnerProgram: stateConfig.enableSubPartnerProgram,
-          subPartnerHeadline: stateConfig.subPartnerHeadline, customCoupons: stateConfig.customCoupons,
-          approvedFeedbacks: stateConfig.approvedFeedbacks, pushNotifications: stateConfig.pushNotifications,
-          abTestConfig: stateConfig.abTestConfig, sidebarAdHtml: stateConfig.sidebarAdHtml,
-          telegramUrl: stateConfig.telegramUrl, instagramUrl: stateConfig.instagramUrl,
-          tiktokUrl: stateConfig.tiktokUrl, whatsappGroupUrl: stateConfig.whatsappGroupUrl,
-          youtubeUrl: stateConfig.youtubeUrl, articles: stateConfig.articles,
-          footerColumns: stateConfig.footerColumns, copyrightText: stateConfig.copyrightText,
-          footerDisclaimerText: stateConfig.footerDisclaimerText, autoBlogSettings: stateConfig.autoBlogSettings
-        };
-        
-        const initialData = { platforms: safePlatforms, config: safeConfig, customPages: stateCustomPages, geo };
-        const scriptTag = `${injectedSchema}<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, '\\u003c')};</script></head>`;
-        html = html.replace('</head>', scriptTag);
-        
-        res.send(html);
-      } else {
-        res.status(500).send('Production build not found. Run npm run build.');
-      }
-    });
-  }
 
 
 // ----------------------------------------------------------------------
@@ -1333,7 +946,6 @@ const autoblogInterval = setInterval(async () => {
   const { categories, topics } = stateConfig.autoBlogSettings;
   if (!categories || categories.length === 0) return;
   
-  const data = { statePlatforms, stateConfig, stateSubPartners };
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
@@ -1341,22 +953,14 @@ const autoblogInterval = setInterval(async () => {
     const defaultCategories = ['Gaming', 'Crypto', 'Finance', 'Loans', 'Virtual Cards'];
     const cats = categories && categories.length > 0 ? categories : defaultCategories;
     const category = cats[Math.floor(Math.random() * cats.length)];
-    const defaultTopics = ['Best crypto wallets for gaming withdrawals', '1Win vs Mostbet: Which is better?', 'Best Casino Promo Codes 2026', 'No KYC Crypto Casinos', 'Instant Withdrawal Casinos in India', 'Stake vs BC.Game Comparison', 'Top 5 Casino Welcome Bonuses', 'How to claim 1Win 500% Bonus'];
+    const defaultTopics = ['Best crypto wallets for gaming withdrawals', 'Top virtual cards for instant cashout', 'Best instant loan apps', 'Gaming platform reviews and promo codes'];
     const tops = topics && topics.length > 0 ? topics : defaultTopics;
     const topic = tops[Math.floor(Math.random() * tops.length)];
 
-    logger.info(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
+    console.log(`[Auto-Blogger] Generating draft for: ${topic} in ${category}`);
     
-    const prompt = `You are an expert iGaming SEO copywriter. Write a comprehensive, highly engaging, and highly converting article (800-1500 words) about: "${topic}".
+    const prompt = `You are an expert SEO copywriter. Write a comprehensive, highly engaging article about: "${topic}".
     Category: ${category}.
-    Make sure to include sections for:
-    - Introduction and target audience
-    - Detailed breakdown (Pros/Cons, Comparisons if applicable)
-    - Payment methods and withdrawal speeds
-    - Step-by-step guide on how to claim promo codes (mention code MAXBOOST500)
-    - Responsible gambling disclaimer at the end
-    
-    Use rich Markdown formatting (H2, H3, bullet points, bold text).
     Return ONLY valid JSON in this exact format:
     {
       "title": "Catchy SEO Title",
@@ -1366,8 +970,8 @@ const autoblogInterval = setInterval(async () => {
       "tags": ["tag1", "tag2", "tag3"]
     }`;
 
-    const response = await generateWithRetry(ai, {
-      model: 'gemini-3.7-flash',
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -1404,46 +1008,15 @@ const autoblogInterval = setInterval(async () => {
 
       if (!stateConfig.articles) stateConfig.articles = [];
       stateConfig.articles = [newArticle, ...stateConfig.articles];
-      logger.info(`[Auto-Blogger] Successfully created draft: ${data.title}`);
+      console.log(`[Auto-Blogger] Successfully created draft: ${data.title}`);
     }
   } catch (err) {
-    logger.error('[Auto-Blogger] Error generating article:', err);
+    console.error('[Auto-Blogger] Error generating article:', err);
   }
 }, (stateConfig.autoBlogSettings?.intervalHours || 24) * 60 * 60 * 1000); // Default to checking daily, but interval updates when hours change.
 
-  const killPort = (port: string | number) => {
-    return new Promise<void>((resolve) => {
-      exec(`lsof -t -i:${port} | xargs kill -9`, (err1) => {
-        if (err1) {
-          exec(`fuser -k ${port}/tcp`, () => resolve());
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
-
-  await killPort(PORT);
-  
-  // Setup Sentry error handler BEFORE any other error middlewares, but AFTER all routes
-  if (process.env.SENTRY_DSN) {
-    Sentry.setupExpressErrorHandler(app);
-  }
-
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`Affiliate Hub App listening on port ${PORT}`);
-  });
-
-  server.on('error', (e: any) => {
-    if (e.code === 'EADDRINUSE') {
-      logger.error(`Port ${PORT} is in use, retrying...`);
-      setTimeout(() => {
-        server.close();
-        server.listen(PORT, '0.0.0.0');
-      }, 1000);
-    } else {
-      logger.error('Server error:', e);
-    }
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Affiliate Hub App listening on port ${PORT}`);
   });
 }
 
